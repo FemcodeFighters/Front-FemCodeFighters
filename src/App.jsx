@@ -7,16 +7,22 @@ import AuthUI from "./components/organisms/Auth/AuthUI";
 import CharacterEditor from "./components/organisms/CharacterEditor/CharacterEditor";
 import useAuthStore from "./store/useAuthStore";
 import styles from "./App.module.css";
-import useCharacterStore from './store/useCharacterStore';
+import useCharacterStore from "./store/useCharacterStore";
+import AccountEditor from "./components/organisms/AccountEditor/AccountEditor";
+import { useUltimateSkill } from "./service/playerApi";
+import { updateCombatStats, getRanking } from "./service/playerApi";
+import RankingUI from "./components/Ranking/RankingUI";
 
 function Bar({ value, max, color, label }) {
-    const pct = Math.max(0, Math.min(100, (value / max) * 100));
+    const safeValue = value ?? 0;
+    const safeMax = max || 100;
+    const pct = Math.max(0, Math.min(100, (safeValue / safeMax) * 100));
     return (
         <div className={styles.barWrapper}>
             <div className={styles.barHeader}>
                 <span className={styles.barLabel}>{label}</span>
                 <span className={styles.barLabel}>
-                    {value}/{max}
+                    {Math.round(safeValue)}/{safeMax}
                 </span>
             </div>
             <div className={styles.barBg}>
@@ -126,9 +132,8 @@ function CombatHUD({ playerHp, enemyHp, playerCooldowns, ultimateState }) {
     );
 }
 
-// Flujo de pantallas:
-// mainmenu → auth → editor → gamemode → combat
 function App() {
+    const [ranking, setRanking] = useState([]);
     const phaserRef = useRef();
     const [screen, setScreen] = useState("");
     const [showCredits, setShowCredits] = useState(false);
@@ -148,6 +153,57 @@ function App() {
     });
 
     useEffect(() => {
+        const handleCombatResult = async ({ winner }) => {
+            const playerWon = winner === "player";
+            try {
+                await updateCombatStats(playerWon);
+                const topPlayers = await getRanking();
+                setRanking(topPlayers);
+
+                const { setCharacter, character } =
+                    useCharacterStore.getState();
+                if (character) {
+                    setCharacter({
+                        ...character,
+                        wins: playerWon ? character.wins + 1 : character.wins,
+                        losses: !playerWon
+                            ? character.losses + 1
+                            : character.losses,
+                    });
+                }
+            } catch (error) {
+                console.error("Error al sincronizar el combate:", error);
+            }
+        };
+
+        EventBus.on("combat-result", handleCombatResult);
+        getRanking().then(setRanking).catch(console.error);
+
+        return () => {
+            EventBus.off("combat-result", handleCombatResult);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleRequestUltimate = async () => {
+            try {
+                const updatedData = await useUltimateSkill();
+                const scene = phaserRef.current?.scene;
+                if (scene) {
+                    scene.events.emit("execute-ultimate", updatedData);
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        };
+
+        EventBus.off("player-health");
+        EventBus.off("enemy-health");
+        EventBus.off("player-cooldown-attack");
+        EventBus.off("player-cooldown-ranged");
+        EventBus.off("player-ultimate");
+        EventBus.off("request-ultimate");
+
         EventBus.on("player-health", ({ hp, maxHP }) =>
             setPlayerHp({ hp, max: maxHP }),
         );
@@ -163,14 +219,17 @@ function App() {
         EventBus.on("player-ultimate", ({ energy, max, ready }) =>
             setUltimateState({ energy, max, ready }),
         );
+        EventBus.on("request-ultimate", handleRequestUltimate);
+
         return () => {
-            EventBus.removeListener("player-health");
-            EventBus.removeListener("enemy-health");
-            EventBus.removeListener("player-cooldown-attack");
-            EventBus.removeListener("player-cooldown-ranged");
-            EventBus.removeListener("player-ultimate");
+            EventBus.off("player-health");
+            EventBus.off("enemy-health");
+            EventBus.off("player-cooldown-attack");
+            EventBus.off("player-cooldown-ranged");
+            EventBus.off("player-ultimate");
+            EventBus.off("request-ultimate");
         };
-    }, []);
+    }, [phaserRef]);
 
     const currentScene = (scene) => {
         const key = scene.scene.key;
@@ -181,24 +240,13 @@ function App() {
 
     const handlePlay = () => {
         setShowCredits(false);
-        if (!isAuthenticated) {
-            setScreen("auth");
-        } else {
-            setScreen("editor");
-        }
+        if (!isAuthenticated) setScreen("auth");
+        else setScreen("editor");
     };
 
-    const handleAuthSuccess = () => setScreen("editor");
-    const handleEditorBack = () =>
-        setScreen(isAuthenticated ? "mainmenu" : "auth");
-    const handleEditorContinue = () => setScreen("gamemode");
     const handleSelectSolo = () => {
-        const scene = phaserRef.current?.scene;
-        if (scene?.scene.key === "MainMenu") {
-            const character = useCharacterStore.getState().character;
-            scene.registry.set('character', character); 
-            EventBus.emit("character-data", character);
-            scene.changeScene();
+        if (phaserRef.current && phaserRef.current.game) {
+            EventBus.emit("start-solo-game");
         }
     };
 
@@ -217,20 +265,28 @@ function App() {
                         logout();
                         setScreen("mainmenu");
                     }}
+                    onRanking={() => setScreen("ranking")}
                 />
             )}
 
             {screen === "auth" && (
                 <AuthUI
                     onBack={() => setScreen("mainmenu")}
-                    onSuccess={handleAuthSuccess}
+                    onSuccess={() => setScreen("editor")}
                 />
             )}
 
             {screen === "editor" && (
                 <CharacterEditor
-                    onBack={handleEditorBack}
-                    onContinue={handleEditorContinue}
+                    onBack={() =>
+                        setScreen(isAuthenticated ? "mainmenu" : "auth")
+                    }
+                    onContinue={() => setScreen("gamemode")}
+                    onLogout={() => {
+                        logout();
+                        setScreen("mainmenu");
+                    }}
+                    onEditAccount={() => setScreen("account")}
                 />
             )}
 
@@ -247,6 +303,23 @@ function App() {
                     enemyHp={enemyHp}
                     playerCooldowns={playerCooldowns}
                     ultimateState={ultimateState}
+                />
+            )}
+
+            {screen === "account" && (
+                <AccountEditor
+                    onBack={() => setScreen("editor")}
+                    onDeleteSuccess={() => {
+                        logout();
+                        setScreen("mainmenu");
+                    }}
+                />
+            )}
+
+            {screen === "ranking" && (
+                <RankingUI
+                    data={ranking}
+                    onBack={() => setScreen("mainmenu")}
                 />
             )}
         </div>

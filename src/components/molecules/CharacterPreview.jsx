@@ -25,7 +25,6 @@ export default function CharacterPreview({ character, size = 180 }) {
             xmlns="http://www.w3.org/2000/svg"
             style={{ display: "block" }}
         >
-            {/* Sombra base */}
             <ellipse
                 cx="40"
                 cy="156"
@@ -35,7 +34,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.2"
             />
 
-            {/* ── Piernas ── */}
             <path
                 d="M30 108 Q26 124 25 142 Q28 146 32 142 Q34 126 36 108 Z"
                 fill={outfitColor}
@@ -47,7 +45,6 @@ export default function CharacterPreview({ character, size = 180 }) {
             />
             <ellipse cx="53" cy="144" rx="6" ry="3.5" fill="#0f0f1a" />
 
-            {/* ── Torso ── */}
             <path
                 d="M22 68 Q24 60 40 59 Q56 60 58 68 L60 108 Q40 114 20 108 Z"
                 fill={outfitColor}
@@ -74,10 +71,8 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.8"
             />
 
-            {/* ── Cuello ── */}
             <rect x="36" y="54" width="8" height="8" rx="2" fill={skinColor} />
 
-            {/* ── Brazo izquierdo ── */}
             <path
                 d="M22 69 Q12 75 10 94 Q14 100 18 96 L24 72 Z"
                 fill={outfitColor}
@@ -89,7 +84,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.7"
             />
 
-            {/* ── Brazo derecho ── */}
             <path
                 d="M58 69 Q68 75 70 94 Q66 100 62 96 L56 72 Z"
                 fill={outfitColor}
@@ -101,12 +95,10 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.7"
             />
 
-            {/* ── Cabeza ── */}
             <ellipse cx="40" cy="36" rx="20" ry="22" fill={skinColor} />
             <ellipse cx="22" cy="36" rx="3" ry="4" fill={skinColor} />
             <ellipse cx="58" cy="36" rx="3" ry="4" fill={skinColor} />
 
-            {/* Mejillas */}
             <ellipse
                 cx="27"
                 cy="40"
@@ -124,8 +116,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.35"
             />
 
-            {/* ── Ojos estilo anime ── */}
-            {/* Ojo izquierdo */}
             <ellipse cx="32" cy="34" rx="6" ry="7" fill="#fff" />
             <ellipse cx="32" cy="35" rx="4.5" ry="5.5" fill={eyeColor} />
             <ellipse cx="32" cy="36" rx="3" ry="3.5" fill={eyeDark} />
@@ -162,7 +152,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.5"
             />
 
-            {/* Ojo derecho */}
             <ellipse cx="48" cy="34" rx="6" ry="7" fill="#fff" />
             <ellipse cx="48" cy="35" rx="4.5" ry="5.5" fill={eyeColor} />
             <ellipse cx="48" cy="36" rx="3" ry="3.5" fill={eyeDark} />
@@ -199,7 +188,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.5"
             />
 
-            {/* Cejas */}
             <path
                 d="M26 27 Q32 24 38 27"
                 stroke={darken(skinColor, 40)}
@@ -215,7 +203,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 strokeLinecap="round"
             />
 
-            {/* Nariz */}
             <path
                 d="M39 42 Q40 44 41 42"
                 stroke={skinDark}
@@ -225,7 +212,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 opacity="0.6"
             />
 
-            {/* Boca */}
             <path
                 d="M35 47 Q40 51 45 47"
                 stroke={skinDark}
@@ -234,7 +220,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 strokeLinecap="round"
             />
 
-            {/* ── Pelo ── todos los elementos usan hairColor / hairDark */}
             <ellipse cx="40" cy="22" rx="22" ry="10" fill={hairColor} />
             <rect x="18" y="24" width="44" height="4" fill={hairColor} />
             <rect
@@ -245,7 +230,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 fill={hairDark}
                 opacity="0.6"
             />
-            {/* Peinado variable */}
             {hairStyle === "ponytail" && (
                 <>
                     <path
@@ -368,7 +352,6 @@ export default function CharacterPreview({ character, size = 180 }) {
                 </>
             )}
 
-            {/* ── Accesorios ── */}
             {accessory === "glasses" && (
                 <>
                     <rect

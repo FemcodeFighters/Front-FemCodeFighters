@@ -1,5 +1,3 @@
-// Sonidos generados con Web Audio API — sin assets externos
-
 class SoundManager {
     constructor() {
         this._ctx = null;
@@ -12,12 +10,10 @@ class SoundManager {
         return this._ctx;
     }
 
-    // ── Golpe melee — cyberpunk/mágico ────────────────────────────────────
     playMeleeHit() {
         const ctx  = this._getContext();
         const now  = ctx.currentTime;
 
-        // Capa 1 — impacto sólido con distorsión
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         const dist  = ctx.createWaveShaper();
@@ -35,7 +31,6 @@ class SoundManager {
         osc1.start(now);
         osc1.stop(now + 0.15);
 
-        // Capa 2 — shimmer cyberpunk
         const osc2  = ctx.createOscillator();
         const gain2 = ctx.createGain();
         const filter = ctx.createBiquadFilter();
@@ -56,7 +51,6 @@ class SoundManager {
         osc2.start(now);
         osc2.stop(now + 0.12);
 
-        // Capa 3 — eco metálico
         const osc3  = ctx.createOscillator();
         const gain3 = ctx.createGain();
 
@@ -73,7 +67,6 @@ class SoundManager {
         osc3.stop(now + 0.2);
     }
 
-    // ── Disparo proyectil ─────────────────────────────────────────────────
     playRangedShot() {
         const ctx = this._getContext();
         const now = ctx.currentTime;
@@ -98,7 +91,6 @@ class SoundManager {
         osc.stop(now + 0.3);
     }
 
-    // ── Daño recibido ─────────────────────────────────────────────────────
     playHurt() {
         const ctx = this._getContext();
         const now = ctx.currentTime;
@@ -127,7 +119,6 @@ class SoundManager {
         source.start(now);
     }
 
-    // ── Ultimate ──────────────────────────────────────────────────────────
     playUltimate() {
         const ctx = this._getContext();
         const now = ctx.currentTime;

@@ -1,265 +1,141 @@
-import Phaser from 'phaser';
 import Character, { CharacterState } from './Character';
 import { EventBus } from '../EventBus';
-import Ultimate from './Ultimate';
-import { generateCharacterFrames } from '../../components/molecules/characterSVG';
-import { soundManager } from '../characters/effects/SoundManager';
+import { mask, unmask } from '../../game/utils/Security';
 
 export default class Player extends Character {
+    #ultimateEnergy;
+
     constructor(scene, x, y) {
+        const characterData = scene.registry.get('character') || {};
+        const stats = characterData.stats || { hp: 100, speed: 200, attack: 15 };
+
         super(scene, x, y, 'player', {
-            maxHP:          100,
-            speed:          220,
-            jumpForce:      -500,
-            attackDamage:   12,
-            attackRange:    65,
-            attackCooldown: 500,
-            rangedCooldown: 5000,
-            bodyW:          36,
-            bodyH:          58,
-            
+            maxHP: stats.hp,
+            speed: stats.speed,
+            jumpForce: -480,
+            attackDamage: stats.attack,
+            attackRange: 80, 
         });
+
+        this.#ultimateEnergy = mask(0);
+        this.energy = 0; 
+        this.maxEnergy = 100;
+        this.ultimateCost = 100;
+        this.isAttackCooldown = false;
+        this.isRangedCooldown = false;
+
         this.projectileType = 'duck';
 
-        // ── Debug rect — se oculta cuando carga la textura ────────────────
-        this._debugRect = scene.add.rectangle(x, y, 36, 58, 0x7c3aed, 0.85);
-
-        // ── Carga texturas animadas del personaje ─────────────────────────
-        const character = scene.registry.get('character');
-        if (character) {
-            this._loadAnimations(character);
-        }
-
-        // ── Ultimate ──────────────────────────────────────────────────────
-        this.ultimateEnergy    = 0;
-        this.ultimateMaxEnergy = 100;
-        this.ultimateReady     = false;
-        this._ultimate         = new Ultimate(scene, this);
-
-        this._energyPerMeleeHit  = 20;
-        this._energyPerRangedHit = 35;
-
-        this._setupControls(scene);
-
-        EventBus.emit('player-cooldown-attack', true);
-        EventBus.emit('player-cooldown-ranged', true);
-        EventBus.emit('player-ultimate', { energy: 0, max: this.ultimateMaxEnergy, ready: false });
-    }
-
-    // ── Carga todos los frames SVG como texturas Phaser ───────────────────
-    _loadAnimations(character) {
-        const animNames = ['idle', 'run', 'attack', 'hurt', 'jump'];
-        let loaded = 0;
-        const total = animNames.reduce((acc, anim) => {
-            return acc + generateCharacterFrames(character, anim).length;
-        }, 0);
-
-        const onAllLoaded = () => {
-            // Registra animaciones en Phaser
-            this.scene.anims.create({
-                key:       'player-idle',
-                frames:    this._buildFrameList('idle'),
-                frameRate: 6,
-                repeat:    -1,
-            });
-            this.scene.anims.create({
-                key:       'player-run',
-                frames:    this._buildFrameList('run'),
-                frameRate: 10,
-                repeat:    -1,
-            });
-            this.scene.anims.create({
-                key:       'player-attack',
-                frames:    this._buildFrameList('attack'),
-                frameRate: 12,
-                repeat:    0,
-            });
-            this.scene.anims.create({
-                key:       'player-hurt',
-                frames:    this._buildFrameList('hurt'),
-                frameRate: 8,
-                repeat:    0,
-            });
-            this.scene.anims.create({
-                key:       'player-jump',
-                frames:    this._buildFrameList('jump'),
-                frameRate: 8,
-                repeat:    0,
-            });
-
-            this.setTexture('player-idle-0');
-            this.setDisplaySize(60, 120);
-            this.body.setSize(36, 58);
-            this.body.setOffset(22, 102);
-            this._debugRect.setVisible(false);
-            this.play('player-idle');
-        };
-
-        animNames.forEach(anim => {
-            const frames = generateCharacterFrames(character, anim);
-            frames.forEach((svgStr, i) => {
-                const key = `player-${anim}-${i}`;
-                if (this.scene.textures.exists(key)) {
-                    this.scene.textures.remove(key);
-                }
-                const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-                const url  = URL.createObjectURL(blob);
-                const img  = new Image();
-                img.onload = () => {
-                    const tex = this.scene.textures.createCanvas(key, 80, 160);
-                    tex.context.drawImage(img, 0, 0);
-                    tex.refresh();
-                    URL.revokeObjectURL(url);
-                    loaded++;
-                    if (loaded === total) onAllLoaded();
-                };
-                img.src = url;
-            });
+        this.cursors = scene.input.keyboard.createCursorKeys();
+        this.keys = scene.input.keyboard.addKeys({
+            attack: Phaser.Input.Keyboard.KeyCodes.F,
+            ranged: Phaser.Input.Keyboard.KeyCodes.G,
+            ultimate: Phaser.Input.Keyboard.KeyCodes.R
         });
-    }
-
-    _buildFrameList(anim) {
-        const frames = generateCharacterFrames(this.scene.registry.get('character'), anim);
-        return frames.map((_, i) => ({ key: `player-${anim}-${i}` }));
     }
 
     update(delta) {
         super.update(delta);
-        this._handleInput();
-        this._debugRect.setPosition(this.x, this.y);
-    }
-
-    _setupControls(scene) {
-        this.keys = scene.input.keyboard.addKeys({
-            left:     Phaser.Input.Keyboard.KeyCodes.A,
-            right:    Phaser.Input.Keyboard.KeyCodes.D,
-            jump:     Phaser.Input.Keyboard.KeyCodes.W,
-            jumpAlt:  Phaser.Input.Keyboard.KeyCodes.SPACE,
-            jumpAlt2: Phaser.Input.Keyboard.KeyCodes.UP,
-            attack:   Phaser.Input.Keyboard.KeyCodes.F,
-            ranged:   Phaser.Input.Keyboard.KeyCodes.G,
-            ultimate: Phaser.Input.Keyboard.KeyCodes.R,
-            leftAlt:  Phaser.Input.Keyboard.KeyCodes.LEFT,
-            rightAlt: Phaser.Input.Keyboard.KeyCodes.RIGHT,
-        });
-    }
-
-    _handleInput() {
+        
         if (this.state === CharacterState.DEAD) return;
+        if (!this._isActionLocked()) {
+            if (this.cursors.left.isDown) {
+                this.moveLeft();
+            } else if (this.cursors.right.isDown) {
+                this.moveRight();
+            } else {
+                this.stopHorizontal();
+            }
 
-        const goLeft   = this.keys.left.isDown  || this.keys.leftAlt.isDown;
-        const goRight  = this.keys.right.isDown || this.keys.rightAlt.isDown;
-        const doJump   = Phaser.Input.Keyboard.JustDown(this.keys.jump)    ||
-                         Phaser.Input.Keyboard.JustDown(this.keys.jumpAlt) ||
-                         Phaser.Input.Keyboard.JustDown(this.keys.jumpAlt2);
-        const doAttack = Phaser.Input.Keyboard.JustDown(this.keys.attack);
-        const doRanged = Phaser.Input.Keyboard.JustDown(this.keys.ranged);
-        const doUlt    = Phaser.Input.Keyboard.JustDown(this.keys.ultimate);
+            if ((this.cursors.up.isDown || this.cursors.space.isDown) && this.isOnGround) {
+                this.jump();
+            }
+        }
 
-        if (goLeft)       this.moveLeft();
-        else if (goRight) this.moveRight();
-        else              this.stopHorizontal();
-
-        if (doJump)   this.jump();
-        if (doAttack) this.attack();
-        if (doRanged) this.rangedAttack();
-        if (doUlt)    this._activateUltimate();
+        if (Phaser.Input.Keyboard.JustDown(this.keys.attack)) {
+            this.handleMeleeAttack();
+        }
+        
+        if (Phaser.Input.Keyboard.JustDown(this.keys.ranged)) {
+            this.handleRangedAttack();
+        }
+        
+        if (Phaser.Input.Keyboard.JustDown(this.keys.ultimate)) {
+            this.useUltimate();
+        }
     }
 
-    attack() {
-        if (this._isActionLocked()) return;
-        if (!this.canAttack) return;
-        super.attack();
-        EventBus.emit('player-cooldown-attack', false);
-        this.scene.time.delayedCall(this.attackCooldown, () => {
-            EventBus.emit('player-cooldown-attack', true);
+    handleMeleeAttack() {
+        if (this.isAttackCooldown || this._isActionLocked()) return;
+        
+        this.attack();
+        this.isAttackCooldown = true;
+        this._syncWithReact(); 
+
+        this.scene.time.delayedCall(500, () => {
+            this.isAttackCooldown = false;
+            this._syncWithReact();
         });
     }
 
-   onMeleeHit() {
-    this._gainEnergy(this._energyPerMeleeHit);
-    soundManager.playMeleeHit();
-}
+    handleRangedAttack() {
+        if (this.isRangedCooldown || this._isActionLocked()) return;
 
-    rangedAttack() {
-        if (this._isActionLocked()) return;
-        if (!this.canRanged) return;
-        super.rangedAttack();
-        EventBus.emit('player-cooldown-ranged', false);
-        this.scene.time.delayedCall(this.rangedCooldown, () => {
-            EventBus.emit('player-cooldown-ranged', true);
+        this.rangedAttack();
+        this.isRangedCooldown = true;
+        this._syncWithReact();
+
+        this.scene.time.delayedCall(1500, () => {
+            this.isRangedCooldown = false;
+            this._syncWithReact();
         });
     }
 
-    onRangedHit() {
-        this._gainEnergy(this._energyPerRangedHit);
-    }
-
-    _activateUltimate() {
-        if (!this.ultimateReady) return;
-        if (this._isActionLocked()) return;
-        this.ultimateEnergy = 0;
-        this.ultimateReady  = false;
-        EventBus.emit('player-ultimate', { energy: 0, max: this.ultimateMaxEnergy, ready: false });
-        this._ultimate.activate(this._targets ?? []);
-    }
-
-    setTargets(targets) {
-        this._targets = targets;
-    }
+    onMeleeHit() { this._gainEnergy(15); }
+    onRangedHit() { this._gainEnergy(10); }
 
     _gainEnergy(amount) {
-        if (this.ultimateReady) return;
-        this.ultimateEnergy = Math.min(this.ultimateMaxEnergy, this.ultimateEnergy + amount);
-        this.ultimateReady  = this.ultimateEnergy >= this.ultimateMaxEnergy;
-        EventBus.emit('player-ultimate', {
-            energy: this.ultimateEnergy,
-            max:    this.ultimateMaxEnergy,
-            ready:  this.ultimateReady,
-        });
+        let current = unmask(this.#ultimateEnergy);
+        current = Math.min(this.maxEnergy, current + amount);
+        this.#ultimateEnergy = mask(current);
+        this.energy = current;
+        this._syncWithReact();
     }
 
-    // ── Animación según estado ────────────────────────────────────────────
-    _playAnimation() {
-        if (!this.scene.textures.exists('player-idle-0')) {
-            // Fallback al rect debug mientras cargan las texturas
-            switch (this.state) {
-                case CharacterState.ATTACK: this._debugRect.setFillStyle(0xf59e0b); break;
-                case CharacterState.RANGED: this._debugRect.setFillStyle(0x00ccff); break;
-                case CharacterState.HURT:   this._debugRect.setFillStyle(0xef4444); break;
-                case CharacterState.JUMP:
-                case CharacterState.FALL:   this._debugRect.setFillStyle(0x6d28d9); break;
-                default:                    this._debugRect.setFillStyle(0x7c3aed); break;
-            }
+    useUltimate() {
+        const currentEnergy = unmask(this.#ultimateEnergy);
+        if (currentEnergy < this.ultimateCost) {
+            console.log("Energía insuficiente");
             return;
         }
 
-        switch (this.state) {
-            case CharacterState.IDLE:
-                if (this.anims.currentAnim?.key !== 'player-idle')
-                    this.play('player-idle');
-                break;
-            case CharacterState.RUN:
-                if (this.anims.currentAnim?.key !== 'player-run')
-                    this.play('player-run');
-                break;
-            case CharacterState.ATTACK:
-                this.play('player-attack');
-                break;
-            case CharacterState.HURT:
-                this.play('player-hurt');
-                break;
-            case CharacterState.JUMP:
-            case CharacterState.FALL:
-                if (this.anims.currentAnim?.key !== 'player-jump')
-                    this.play('player-jump');
-                break;
+        this.#ultimateEnergy = mask(0);
+        this.energy = 0;
+        
+        this.scene.cameras.main.shake(300, 0.02);
+        this.scene.cameras.main.flash(500, 255, 255, 255);
+        
+        if (this.scene.enemy && this.scene.enemy.isAlive()) {
+            this.scene.enemy.takeDamage(40, this);
         }
+
+        this.setTint(0x00ffff);
+        this.scene.time.delayedCall(1000, () => this.clearTint());
+        this._syncWithReact();
     }
 
-    destroy(fromScene) {
-        this._debugRect?.destroy();
-        this._ultimate?.destroy();
-        super.destroy(fromScene);
+    _syncWithReact() {
+        if (this.scene._updateUI) {
+            this.scene._updateUI();
+        }
+        
+        EventBus.emit('player-ultimate', { 
+            energy: this.energy, 
+            max: this.maxEnergy, 
+            ready: this.energy >= this.ultimateCost 
+        });
+
+        EventBus.emit('player-cooldown-attack', !this.isAttackCooldown);
+        EventBus.emit('player-cooldown-ranged', !this.isRangedCooldown);
     }
 }

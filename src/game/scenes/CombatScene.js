@@ -1,96 +1,128 @@
-import { EventBus } from '../EventBus';
-import { Scene } from 'phaser';
-import Player from '../characters/Player';
-import EnemyJavaScript from '../characters/EnemyJavaScript';
+import { EventBus } from "../EventBus";
+import { Scene } from "phaser";
+import Player from "../characters/Player";
+import EnemyJavaScript from "../characters/EnemyJavaScript";
 
 export default class CombatScene extends Scene {
     constructor() {
         super({
-            key: 'CombatScene',
-            physics: {
-                arcade: {
-                    gravity: { y: 600 },
-                    debug: false,
-                }
-            }
+            key: "CombatScene",
+            physics: { arcade: { gravity: { y: 800 } } },
         });
     }
 
     create() {
+        
+        EventBus.emit("current-scene-ready", this);
         const { width, height } = this.scale;
-
-        this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
-
+        this._createMockupTextures();
         this.platforms = this._createPlatforms(width, height);
+        this._initEntities(width, height);
+        this.cameras.main.setBackgroundColor("#1a1a2e").fadeIn(500);
+        this.time.delayedCall(100, () => this._updateUI());
+    }
 
-        this.player = new Player(this, 160, height - 200);
-        this.enemy  = new EnemyJavaScript(this, width - 160, height - 200);
+    _initEntities(width, height) {
+        if (this.player || this.enemy) return;
 
-        // Registrar targets para las ultimates
-        this.player.setTargets([this.enemy]);
+        this.player = new Player(this, 200, height - 150, "player_custom");
+        this.enemy = new EnemyJavaScript(this, width - 200, height - 150);
 
-        // Colisiones personajes ↔ plataformas
         this.physics.add.collider(this.player, this.platforms);
-        this.physics.add.collider(this.enemy,  this.platforms);
+        this.physics.add.collider(this.enemy, this.platforms);
 
-        // Eventos → React vía EventBus
-        this.player.on('healthChanged', (hp, maxHP) => {
-            EventBus.emit('player-health', { hp, maxHP });
-        });
-        this.enemy.on('healthChanged', (hp, maxHP) => {
-            EventBus.emit('enemy-health', { hp, maxHP });
-        });
-        this.player.on('died', () => this._onCombatEnd('enemy'));
-        this.enemy.on('died',  () => this._onCombatEnd('player'));
+        this.player.on("healthChanged", () => this._updateUI());
+        this.enemy.on("healthChanged", () => this._updateUI());
 
-        EventBus.emit('current-scene-ready', this);
+        this.player.on("died", () => this._onCombatEnd("enemy"));
+        this.enemy.on("died", () => this._onCombatEnd("player"));
     }
 
     update(_time, delta) {
-        if (this.player?.isAlive()) this.player.update(delta);
-        if (this.enemy?.isAlive())  this.enemy.update(delta, this.player);
+        if (!this.player || !this.enemy || !this.player.active) return;
+        this.player.update(delta);
+        if (this.enemy.isAlive()) this.enemy.update(delta, this.player);
 
-        if (this.player?.isAlive() && this.enemy?.isAlive()) {
-            // Melee jugadora → acumula energía ultimate jugadora
-            const playerMeleeHit = this.player.checkAttackHit(this.enemy);
-            if (playerMeleeHit) this.player.onMeleeHit();
+        this._checkCombatCollisions();
+    }
 
-            // Melee enemigo → acumula energía ultimate enemigo
-            const enemyMeleeHit = this.enemy.checkAttackHit(this.player);
-            if (enemyMeleeHit) this.enemy.onMeleeHit();
+    _checkCombatCollisions() {
+        if (!this.player.isAlive() || !this.enemy.isAlive()) return;
 
-            // Proyectiles jugadora → acumula energía ultimate jugadora
-            this.player.checkProjectileHit(this.enemy, () => this.player.onRangedHit());
-
-            // Proyectiles enemigo → acumula energía ultimate enemigo
-            this.enemy.checkProjectileHit(this.player, () => this.enemy.onRangedHit());
+        if (this.player.checkAttackHit(this.enemy)) {
+            this.player.onMeleeHit();
+            this.cameras.main.shake(100, 0.005);
+            this._updateUI();
         }
+
+        if (this.enemy.checkAttackHit?.(this.player)) {
+            this.cameras.main.shake(100, 0.005);
+            this._updateUI();
+        }
+
+        this.player.checkProjectileHit(this.enemy, () => {
+            this.player.onRangedHit();
+            this._updateUI();
+        });
+    }
+
+    _updateUI() {
+        if (!this.player || !this.enemy) return;
+
+        EventBus.emit("player-health", {
+            hp: this.player.hp,
+            maxHP: this.player.maxHP,
+        });
+        EventBus.emit("enemy-health", {
+            hp: this.enemy.hp,
+            maxHP: this.enemy.maxHP,
+        });
+
+        EventBus.emit("player-ultimate", {
+            energy: this.player.energy,
+            max: this.player.maxEnergy,
+            ready: this.player.energy >= this.player.ultimateCost,
+        });
+
+        EventBus.emit("player-cooldown-attack", !this.player.isAttackCooldown);
+        EventBus.emit("player-cooldown-ranged", !this.player.isRangedCooldown);
     }
 
     _createPlatforms(width, height) {
         const platforms = this.physics.add.staticGroup();
-
-        const ground = this.add.rectangle(width / 2, height - 40, width, 80, 0x2d3561);
+        const ground = this.add.rectangle(
+            width / 2,
+            height - 30,
+            width,
+            60,
+            0x000000,
+        );
         platforms.add(ground);
-        this.physics.add.existing(ground, true);
-
-        [
-            { x: width * 0.25, y: height - 200, w: 200, h: 20 },
-            { x: width * 0.75, y: height - 200, w: 200, h: 20 },
-            { x: width * 0.5,  y: height - 340, w: 260, h: 20 },
-        ].forEach(({ x, y, w, h }) => {
-            const plat = this.add.rectangle(x, y, w, h, 0x4a5394);
-            platforms.add(plat);
-            this.physics.add.existing(plat, true);
-        });
-
         return platforms;
     }
 
+    _createMockupTextures() {
+        if (!this.textures.exists("player"))
+            this.textures.generate("player", {
+                data: ["3"],
+                pixelWidth: 40,
+                pixelHeight: 60,
+            });
+        if (!this.textures.exists("enemy_js"))
+            this.textures.generate("enemy_js", {
+                data: ["e"],
+                pixelWidth: 40,
+                pixelHeight: 60,
+            });
+    }
     _onCombatEnd(winner) {
-        this.time.delayedCall(800, () => {
-            EventBus.emit('combat-end', winner);
-            this.scene.start('GameOver');
+        this.physics.pause();
+        this.player.setTint(winner === "player" ? 0x00ff00 : 0xff0000);
+
+        EventBus.emit("combat-result", { winner });
+
+        this.time.delayedCall(1500, () => {
+            this.scene.start("GameOver", { winner: winner });
         });
     }
 }

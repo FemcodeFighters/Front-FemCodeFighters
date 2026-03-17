@@ -1,184 +1,225 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
+/*@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');*/
 
 @keyframes gridMove {
-    0%   { background-position: 0 0; }
-    100% { background-position: 0 40px; }
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 0 40px;
+    }
 }
 
 @keyframes glitch {
-    0%, 94%, 100% { opacity: 0; transform: scaleX(1); }
-    95%  { opacity: 1; transform: scaleX(0.6); }
-    97%  { opacity: 0.5; transform: scaleX(1); }
-    99%  { opacity: 1; transform: scaleX(0.8); }
+    0%,
+    94%,
+    100% {
+        opacity: 0;
+        transform: scaleX(1);
+    }
+    95% {
+        opacity: 1;
+        transform: scaleX(0.6);
+    }
+    97% {
+        opacity: 0.5;
+        transform: scaleX(1);
+    }
+    99% {
+        opacity: 1;
+        transform: scaleX(0.8);
+    }
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes expandLine {
-    from { width: 0; }
-    to   { width: 340px; }
+    from {
+        width: 0;
+    }
+    to {
+        width: 340px;
+    }
 }
 
 @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.7; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .root {
-    position:        absolute;
-    inset:           0;
-    background:      #020408;
-    display:         flex;
-    flex-direction:  column;
-    align-items:     center;
+    position: absolute;
+    inset: 0;
+    background: #020408;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    overflow:        hidden;
-    z-index:         20;
+    overflow: hidden;
+    z-index: 20;
 }
 
 .grid {
-    position:         absolute;
-    inset:            0;
+    position: absolute;
+    inset: 0;
     background-image:
-        linear-gradient(rgba(0,255,200,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,200,0.04) 1px, transparent 1px);
-    background-size:  40px 40px;
-    animation:        gridMove 6s linear infinite;
+        linear-gradient(rgba(0, 255, 200, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 200, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 6s linear infinite;
 }
 
 .scanlines {
-    position:       absolute;
-    inset:          0;
-    background:     repeating-linear-gradient(
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
         0deg,
         transparent,
         transparent 2px,
-        rgba(0,0,0,0.12) 2px,
-        rgba(0,0,0,0.12) 4px
+        rgba(0, 0, 0, 0.12) 2px,
+        rgba(0, 0, 0, 0.12) 4px
     );
     pointer-events: none;
 }
 
 .glitchLine {
-    position:       absolute;
-    left:           0;
-    right:          0;
-    height:         1px;
-    background:     rgba(0,255,200,0.4);
-    animation:      glitch 4s ease-in-out infinite;
-    opacity:        0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 255, 200, 0.4);
+    animation: glitch 4s ease-in-out infinite;
+    opacity: 0;
     pointer-events: none;
 }
 
 .particles {
-    position:       absolute;
-    inset:          0;
+    position: absolute;
+    inset: 0;
     pointer-events: none;
 }
 
 .content {
-    position:        relative;
-    z-index:         10;
-    display:         flex;
-    flex-direction:  column;
-    align-items:     center;
-    gap:             0;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
 }
 
 .supertitle {
-    font-family:    'Share Tech Mono', monospace;
-    font-size:      11px;
-    color:          #00ffc8;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    color: #00ffc8;
     letter-spacing: 0.4em;
-    margin-bottom:  16px;
-    animation:      fadeInDown 0.8s ease 0.2s both;
+    margin-bottom: 16px;
+    animation: fadeInDown 0.8s ease 0.2s both;
 }
 
 .titleRow {
-    display:   flex;
-    gap:       12px;
+    display: flex;
+    gap: 12px;
     animation: fadeInDown 0.8s ease 0.4s both;
 }
 
 .titleWhite {
-    font-family:  'Orbitron', monospace;
-    font-size:    clamp(40px, 6vw, 72px);
-    font-weight:  900;
-    color:        #ffffff;
-    line-height:  1;
+    font-family: "Orbitron", monospace;
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
 }
 
 .titleCyan {
-    font-family:  'Orbitron', monospace;
-    font-size:    clamp(40px, 6vw, 72px);
-    font-weight:  900;
-    color:        #00ffc8;
-    line-height:  1;
-    text-shadow:  0 0 20px #00ffc8, 0 0 40px rgba(0,255,200,0.38);
-    animation:    flicker 4s ease-in-out infinite;
+    font-family: "Orbitron", monospace;
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    color: #00ffc8;
+    line-height: 1;
+    text-shadow:
+        0 0 20px #00ffc8,
+        0 0 40px rgba(0, 255, 200, 0.38);
+    animation: flicker 4s ease-in-out infinite;
 }
 
 .divider {
-    height:     1px;
+    height: 1px;
     background: linear-gradient(90deg, transparent, #00ffc8, transparent);
-    margin:     20px 0;
-    animation:  expandLine 0.6s ease 0.9s both;
+    margin: 20px 0;
+    animation: expandLine 0.6s ease 0.9s both;
 }
 
 .tagline {
-    font-family:    'Share Tech Mono', monospace;
-    font-size:      12px;
-    color:          rgba(0,255,200,0.5);
+    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
+    color: rgba(0, 255, 200, 0.5);
     letter-spacing: 0.25em;
-    margin-bottom:  48px;
-    animation:      fadeInDown 0.8s ease 1s both;
+    margin-bottom: 48px;
+    animation: fadeInDown 0.8s ease 1s both;
 }
 
 .buttons {
-    display:        flex;
+    display: flex;
     flex-direction: column;
-    align-items:    center;
-    gap:            14px;
-    animation:      fadeInUp 0.8s ease 1.2s both;
+    align-items: center;
+    gap: 14px;
+    animation: fadeInUp 0.8s ease 1.2s both;
 }
 
 .playBtn {
-    font-family:     'Orbitron', monospace;
-    font-size:       16px;
-    font-weight:     700;
-    letter-spacing:  0.2em;
-    padding:         16px 60px;
-    background:      transparent;
-    color:           #00ffc8;
-    border:          2px solid #00ffc8;
-    cursor:          pointer;
-    position:        relative;
-    overflow:        hidden;
-    text-transform:  uppercase;
-    transition:      color 0.3s;
+    font-family: "Orbitron", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 16px 60px;
+    background: transparent;
+    color: #00ffc8;
+    border: 2px solid #00ffc8;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    transition: color 0.3s;
 }
 
 .playBtn::before {
-    content:    '';
-    position:   absolute;
-    inset:      0;
+    content: "";
+    position: absolute;
+    inset: 0;
     background: #00ffc8;
-    transform:  translateX(-101%);
+    transform: translateX(-101%);
     transition: transform 0.3s ease;
-    z-index:    0;
+    z-index: 0;
 }
 
 .playBtn span {
     position: relative;
-    z-index:  1;
+    z-index: 1;
 }
 
 .playBtn:hover {
@@ -190,72 +231,74 @@
 }
 
 .secondaryBtn {
-    font-family:    'Share Tech Mono', monospace;
-    font-size:      12px;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
     letter-spacing: 0.2em;
-    padding:        8px 24px;
-    background:     transparent;
-    color:          rgba(255,255,255,0.25);
-    border:         1px solid rgba(255,255,255,0.12);
-    cursor:         pointer;
+    padding: 8px 24px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
     text-transform: uppercase;
-    transition:     color 0.2s, border-color 0.2s;
+    transition:
+        color 0.2s,
+        border-color 0.2s;
 }
 
 .secondaryBtn:hover {
-    color:        #ffffff;
-    border-color: rgba(255,255,255,0.5);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .version {
-    position:       absolute;
-    bottom:         16px;
-    right:          20px;
-    font-family:    monospace;
-    font-size:      10px;
-    color:          rgba(255,255,255,0.12);
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    font-family: monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.12);
     letter-spacing: 0.1em;
-    z-index:        10;
+    z-index: 10;
 }
 
 .creditsOverlay {
-    position:        absolute;
-    inset:           0;
-    background:      rgba(2,4,8,0.95);
-    z-index:         30;
-    display:         flex;
-    flex-direction:  column;
-    align-items:     center;
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 4, 8, 0.95);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap:             8px;
-    animation:       fadeInDown 0.3s ease both;
+    gap: 8px;
+    animation: fadeInDown 0.3s ease both;
 }
 
 .creditsTitle {
-    font-family:    'Orbitron', monospace;
-    font-size:      20px;
-    color:          #00ffc8;
+    font-family: "Orbitron", monospace;
+    font-size: 20px;
+    color: #00ffc8;
     letter-spacing: 0.2em;
-    margin-bottom:  16px;
+    margin-bottom: 16px;
 }
 
 .creditsLabel {
-    font-family:    monospace;
-    font-size:      11px;
-    color:          rgba(255,255,255,0.4);
+    font-family: monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.2em;
 }
 
 .creditsValue {
-    font-family:    monospace;
-    font-size:      16px;
-    color:          #ffffff;
+    font-family: monospace;
+    font-size: 16px;
+    color: #ffffff;
     letter-spacing: 0.15em;
 }
 
 .creditsValueCyan {
-    font-family:    monospace;
-    font-size:      16px;
-    color:          #00ffc8;
+    font-family: monospace;
+    font-size: 16px;
+    color: #00ffc8;
     letter-spacing: 0.15em;
 }

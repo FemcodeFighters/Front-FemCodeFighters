@@ -1,0 +1,308 @@
+.root {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    overflow: hidden;
+}
+
+.grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 255, 200, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 200, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+}
+
+.loading {
+    color: #00ffc8;
+    font-family: monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+}
+
+.backBtn {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background: transparent;
+    border: 1px solid #00ffc8;
+    color: #00ffc8;
+    font-family: monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 10;
+}
+
+.backBtn:hover {
+    background: #00ffc822;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.headerTitle {
+    font-family: monospace;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: 0.2em;
+}
+
+.headerTitle span {
+    color: #00ffc8;
+}
+
+.headerSub {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #555;
+    letter-spacing: 0.2em;
+    margin-top: 0.25rem;
+}
+
+.profileInfo {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+}
+
+.profileLabel {
+    color: #555;
+    letter-spacing: 0.1em;
+}
+
+.profileValue {
+    color: #00ffc8;
+    letter-spacing: 0.1em;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #1a1a2e;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.tab {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #1a1a2e;
+    color: #555;
+    font-family: monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    border-color: #00ffc8;
+    color: #00ffc8;
+}
+
+.tabActive {
+    border-color: #00ffc8;
+    color: #00ffc8;
+    background: rgba(0, 255, 200, 0.05);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.fieldLabel {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: #555;
+    letter-spacing: 0.15em;
+}
+
+.input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid #1a1a2e;
+    color: #fff;
+    font-family: monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.input:focus {
+    border-color: #00ffc8;
+}
+
+.input::placeholder {
+    color: #333;
+}
+
+.error {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #ef4444;
+    letter-spacing: 0.1em;
+}
+
+.success {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #00ffc8;
+    letter-spacing: 0.1em;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.saveBtn {
+    background: transparent;
+    border: 1px solid #00ffc8;
+    color: #00ffc8;
+    font-family: monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.saveBtn:hover:not(:disabled) {
+    background: rgba(0, 255, 200, 0.1);
+}
+
+.saveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dangerZone {
+    border-top: 1px solid #1a1a2e;
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.dangerLabel {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: #ef4444;
+    letter-spacing: 0.15em;
+}
+
+.deleteBtn {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    font-family: monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-self: flex-start;
+}
+
+.deleteBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.confirmDelete {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.confirmText {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #ef4444;
+    letter-spacing: 0.05em;
+}
+
+.confirmActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.confirmYes {
+    background: #ef4444;
+    border: 1px solid #ef4444;
+    color: #fff;
+    font-family: monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.confirmYes:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.confirmYes:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.confirmNo {
+    background: transparent;
+    border: 1px solid #555;
+    color: #555;
+    font-family: monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.confirmNo:hover {
+    border-color: #fff;
+    color: #fff;
+}

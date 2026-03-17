@@ -1,11 +1,21 @@
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.3; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.7; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .app {
@@ -13,38 +23,38 @@
 }
 
 .hud {
-    position:        absolute;
-    top:             0;
-    left:            0;
-    right:           0;
-    padding:         10px 20px;
-    display:         flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 20px;
+    display: flex;
     justify-content: space-between;
-    align-items:     flex-start;
-    pointer-events:  none;
-    z-index:         10;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
 }
 
 .hudPlayer {
-    width:          240px;
-    display:        flex;
+    width: 240px;
+    display: flex;
     flex-direction: column;
-    gap:            5px;
+    gap: 5px;
 }
 
 .hudEnemy {
-    width:          240px;
-    display:        flex;
+    width: 240px;
+    display: flex;
     flex-direction: column;
-    gap:            5px;
-    align-items:    flex-end;
+    gap: 5px;
+    align-items: flex-end;
 }
 
 .hudVs {
-    font-family:  monospace;
-    font-size:    13px;
-    color:        #444;
-    align-self:   center;
+    font-family: monospace;
+    font-size: 13px;
+    color: #444;
+    align-self: center;
 }
 
 .barWrapper {
@@ -52,122 +62,126 @@
 }
 
 .barHeader {
-    display:         flex;
+    display: flex;
     justify-content: space-between;
-    margin-bottom:   2px;
+    margin-bottom: 2px;
 }
 
 .barLabel {
-    font-size:   11px;
+    font-size: 11px;
     font-family: monospace;
-    color:       #aaa;
+    color: #aaa;
 }
 
 .barBg {
-    height:       10px;
-    background:   #222;
+    height: 10px;
+    background: #222;
     border-radius: 4px;
-    overflow:     hidden;
-    border:       1px solid #444;
+    overflow: hidden;
+    border: 1px solid #444;
 }
 
 .barFill {
-    height:        100%;
+    height: 100%;
     border-radius: 4px;
-    transition:    width 0.15s ease;
+    transition: width 0.15s ease;
 }
 
 .ultimateWrapper {
-    width:      100%;
+    width: 100%;
     margin-top: 4px;
 }
 
 .ultimateHeader {
-    display:         flex;
+    display: flex;
     justify-content: space-between;
-    margin-bottom:   2px;
+    margin-bottom: 2px;
 }
 
 .ultimateLabelReady {
-    font-size:   11px;
+    font-size: 11px;
     font-family: monospace;
-    color:       #ff00ff;
-    animation:   blink 0.6s ease-in-out infinite;
+    color: #ff00ff;
+    animation: blink 0.6s ease-in-out infinite;
 }
 
 .ultimateLabelIdle {
-    font-size:   11px;
+    font-size: 11px;
     font-family: monospace;
-    color:       #888;
+    color: #888;
 }
 
 .ultimatePct {
-    font-size:   11px;
+    font-size: 11px;
     font-family: monospace;
-    color:       #888;
+    color: #888;
 }
 
 .ultimateBgReady {
-    height:        12px;
-    background:    #1a0020;
+    height: 12px;
+    background: #1a0020;
     border-radius: 4px;
-    overflow:      hidden;
-    border:        1px solid #ff00ff;
-    box-shadow:    0 0 8px rgba(255,0,255,0.53);
-    transition:    border-color 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+    border: 1px solid #ff00ff;
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.53);
+    transition:
+        border-color 0.3s,
+        box-shadow 0.3s;
 }
 
 .ultimateBgIdle {
-    height:        12px;
-    background:    #1a0020;
+    height: 12px;
+    background: #1a0020;
     border-radius: 4px;
-    overflow:      hidden;
-    border:        1px solid #440055;
-    transition:    border-color 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+    border: 1px solid #440055;
+    transition:
+        border-color 0.3s,
+        box-shadow 0.3s;
 }
 
 .ultimateFillReady {
-    height:        100%;
-    background:    linear-gradient(90deg, #cc00ff, #ff00ff);
+    height: 100%;
+    background: linear-gradient(90deg, #cc00ff, #ff00ff);
     border-radius: 4px;
-    transition:    width 0.15s ease;
-    animation:     pulse 0.6s ease-in-out infinite;
+    transition: width 0.15s ease;
+    animation: pulse 0.6s ease-in-out infinite;
 }
 
 .ultimateFillIdle {
-    height:        100%;
-    background:    linear-gradient(90deg, #660088, #9900cc);
+    height: 100%;
+    background: linear-gradient(90deg, #660088, #9900cc);
     border-radius: 4px;
-    transition:    width 0.15s ease;
+    transition: width 0.15s ease;
 }
 
 .cooldowns {
-    display:    flex;
-    gap:        12px;
+    display: flex;
+    gap: 12px;
     margin-top: 2px;
 }
 
 .cooldownItem {
-    display:     flex;
+    display: flex;
     align-items: center;
-    gap:         6px;
+    gap: 6px;
 }
 
 .cooldownKey {
-    font-size:   10px;
+    font-size: 10px;
     font-family: monospace;
-    color:       #666;
-    min-width:   14px;
+    color: #666;
+    min-width: 14px;
 }
 
 .cooldownDot {
-    width:         14px;
-    height:        14px;
+    width: 14px;
+    height: 14px;
     border-radius: 3px;
-    transition:    background 0.2s;
+    transition: background 0.2s;
 }
 
 .cooldownText {
-    font-size:   10px;
+    font-size: 10px;
     font-family: monospace;
 }

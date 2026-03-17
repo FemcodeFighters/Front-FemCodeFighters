@@ -1,4 +1,4 @@
-import styles from './GameModeSelect.module.css';
+import styles from "./GameModeSelect.module.css";
 
 export default function GameModeSelect({ onSelectSolo, onBack }) {
     return (
@@ -22,8 +22,10 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
                         <div className={styles.cardIcon}>⚔️</div>
                         <div className={styles.cardTitle}>SOLO</div>
                         <div className={styles.cardDesc}>
-                            1 jugadora vs IA<br />
-                            Enfréntate a los lenguajes<br />
+                            1 jugadora vs IA
+                            <br />
+                            Enfréntate a los lenguajes
+                            <br />
                             de programación en solitario
                         </div>
                         <div className={styles.tagReady}>DISPONIBLE</div>
@@ -34,8 +36,10 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
                         <div className={styles.cardIcon}>🌐</div>
                         <div className={styles.cardTitle}>CO-OP ONLINE</div>
                         <div className={styles.cardDesc}>
-                            2-4 jugadoras vs IA<br />
-                            Únete con otras devs<br />
+                            2-4 jugadoras vs IA
+                            <br />
+                            Únete con otras devs
+                            <br />
                             para derrotar el stack
                         </div>
                         <div className={styles.tagSoon}>PRÓXIMAMENTE</div>

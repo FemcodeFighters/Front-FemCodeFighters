@@ -1,30 +1,56 @@
-import { EventBus } from '../EventBus';
-import { Scene } from 'phaser';
+import { Scene } from "phaser";
+import { EventBus } from "../EventBus";
 
-export class GameOver extends Scene
-{
-    constructor ()
-    {
-        super('GameOver');
+export class GameOver extends Scene {
+    constructor() {
+        super("GameOver");
     }
 
-    create ()
-    {
-        this.cameras.main.setBackgroundColor(0xff0000);
-
-        this.add.image(512, 384, 'background').setAlpha(0.5);
-
-        this.add.text(512, 384, 'Game Over', {
-            fontFamily: 'Arial Black', fontSize: 64, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5).setDepth(100);
-
-        EventBus.emit('current-scene-ready', this);
+    init(data) {
+        this.winner = data.winner || "enemy";
     }
 
-    changeScene ()
-    {
-        this.scene.start('MainMenu');
+    create() {
+        const { width, height } = this.scale;
+        EventBus.emit("combat-result", { winner: this.winner });
+        this.add.rectangle(0, 0, width, height, 0x000000, 0.8).setOrigin(0);
+        const isWin = this.winner === "player";
+        const titleText = isWin ? "MISSION ACCOMPLISHED" : "SYSTEM FAILURE";
+        const titleColor = isWin ? "#00ffff" : "#ff0055";
+        this.add
+            .text(width / 2, height / 2 - 50, titleText, {
+                fontFamily: "Orbitron, Courier",
+                fontSize: "64px",
+                fill: titleColor,
+                stroke: "#000",
+                strokeThickness: 6,
+            })
+            .setOrigin(0.5);
+
+        const retryBtn = this.add
+            .text(width / 2, height / 2 + 100, "PRESS [R] TO RESTART", {
+                fontFamily: "Courier",
+                fontSize: "24px",
+                fill: "#ffff00",
+            })
+            .setOrigin(0.5);
+
+        this.tweens.add({
+            targets: retryBtn,
+            alpha: 0.3,
+            duration: 800,
+            yoyo: true,
+            repeat: -1,
+        });
+
+        this.input.keyboard.once("keydown-R", () => {
+            this.scene.stop("GameOver");
+            this.scene.start("CombatScene");
+        });
+
+        this.input.keyboard.once("keydown-ESC", () => {
+            this.scene.stop("GameOver");
+            this.scene.start("MainMenu");
+        });
     }
 }

@@ -1,6 +1,5 @@
 import styles from "../organisms/Auth/AuthUI.module.css";
 
-
 export default function AuthToggle({ mode, onToggle }) {
     return (
         <div className={styles.toggle}>

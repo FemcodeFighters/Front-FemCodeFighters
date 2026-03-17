@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import Character, { CharacterState } from './Character';
+import Character from './Character';
 import Ultimate from './Ultimate';
+import { mask, unmask } from '../../game/utils/Security';
 
 const AIState = {
     IDLE:    'ai_idle',
@@ -11,9 +12,13 @@ const AIState = {
 };
 
 export default class EnemyJavaScript extends Character {
+    #ultimateEnergy;
+
     constructor(scene, x, y) {
-        super(scene, x, y, 'enemy_js', {
-            maxHP:          100,
+        const textureKey = scene.textures.exists('enemy_js') ? 'enemy_js' : null;
+
+        super(scene, x, y, textureKey, {
+            maxHP:          120,
             speed:          240,
             jumpForce:      -460,
             attackDamage:   8,
@@ -23,8 +28,9 @@ export default class EnemyJavaScript extends Character {
             bodyW:          34,
             bodyH:          56,
         });
+
         this.projectileType = 'bug';
-        this._debugRect = scene.add.rectangle(x, y, 34, 56, 0xf7df1e, 0.85);
+        
         this._labelText = scene.add.text(x, y - 40, 'JS', {
             fontSize:        '12px',
             fontFamily:      'monospace',
@@ -33,27 +39,44 @@ export default class EnemyJavaScript extends Character {
             padding:         { x: 4, y: 2 },
         }).setOrigin(0.5);
 
-        // ── Ultimate ──────────────────────────────────────────────────────
-        this.ultimateEnergy    = 0;
+        this.#ultimateEnergy = mask(0); 
         this.ultimateMaxEnergy = 100;
         this.ultimateReady     = false;
-        this._ultimate         = new Ultimate(scene, this);
+        this._ultimateKey      = 'SPAGHETTI_CODE';
+        this._ultimate         = new Ultimate(scene, this, this._ultimateKey);
 
-        // Energía acumulada por impacto
-        this._energyPerMeleeHit  = 20;
-        this._energyPerRangedHit = 35;
+        const particleTexture = scene.textures.exists('bug') ? 'bug' : null;
+        this._dangerParticles = scene.add.particles(0, 0, particleTexture, { 
+            speed: { min: 60, max: 120 },
+            scale: { start: 0.6, end: 0 },
+            alpha: { start: 0.8, end: 0 },
+            tint: 0xff0000,
+            lifespan: 500,
+            emitting: false, 
+        });
+        this._dangerParticles.startFollow(this);
 
-        // ── IA ────────────────────────────────────────────────────────────
         this._aiState       = AIState.IDLE;
         this._target        = null;
         this._thinkTimer    = 0;
         this._thinkInterval = 300;
     }
 
+
+    isAlive() {
+        return this.hp > 0 && this.active;
+    }
+
     update(delta, target) {
         super.update(delta);
 
-        if (!target || !target.isAlive()) return;
+        if (!this.isAlive() || !target || !target.active) {
+            this._stopDangerParticles();
+            this.stopHorizontal();
+            if (this._labelText) this._labelText.setVisible(false);
+            return;
+        }
+
         this._target = target;
 
         this._thinkTimer += delta;
@@ -64,130 +87,89 @@ export default class EnemyJavaScript extends Character {
 
         this._executeAI();
 
-        this._debugRect.setPosition(this.x, this.y);
-        this._labelText.setPosition(this.x, this.y - 40);
+        if (this._labelText) {
+            this._labelText.setPosition(this.x, this.y - 40);
+        }
     }
 
-    // Llamado desde CombatScene cuando un ataque impacta al jugador
-    onMeleeHit()  { this._gainEnergy(this._energyPerMeleeHit); }
-    onRangedHit() { this._gainEnergy(this._energyPerRangedHit); }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // IA
-    // ─────────────────────────────────────────────────────────────────────
+    onMeleeHit()  { this._gainEnergy(20); }
+    onRangedHit() { this._gainEnergy(35); }
+
+    _gainEnergy(amount) {
+        if (this.ultimateReady) return;
+        let current = unmask(this.#ultimateEnergy);
+        current = Math.min(this.ultimateMaxEnergy, current + amount);
+        this.#ultimateEnergy = mask(current);
+
+        if (current >= this.ultimateMaxEnergy) {
+            this.ultimateReady = true;
+            this._startDangerParticles();
+        }
+    }
+
     _think() {
-        if (!this._target || this.state === CharacterState.DEAD) return;
+        const dist = Phaser.Math.Distance.Between(this.x, this.y, this._target.x, this._target.y);
 
-        // Ultimate automática al llenarse
-        if (this.ultimateReady) {
+        if (this.ultimateReady && dist < 200) {
             this._activateUltimate();
             return;
         }
 
-        const dist = Phaser.Math.Distance.Between(
-            this.x, this.y,
-            this._target.x, this._target.y
-        );
-
-        // Decidir entre rango y melee aleatoriamente cuando puede
         if (dist < this.attackRange + 10) {
-            // En rango melee — 30% de chance de usar proyectil de todos modos
-            this._aiState = Math.random() < 0.3 ? AIState.RANGED : AIState.ATTACK;
-        } else if (dist < 350) {
-            // A media distancia — 40% de chance de usar proyectil
-            this._aiState = Math.random() < 0.4 ? AIState.RANGED : AIState.CHASE;
+            this._aiState = AIState.ATTACK;
+        } else if (dist < 400) {
+            this._aiState = AIState.CHASE;
         } else {
-            // Lejos — siempre proyectil si puede, si no perseguir
-            this._aiState = this.canRanged ? AIState.RANGED : AIState.CHASE;
-        }
-
-        // Impredecibilidad: retrocede ocasionalmente
-        if (Math.random() < 0.08) {
-            this._aiState = AIState.RETREAT;
-            this.scene.time.delayedCall(400, () => {
-                if (this._aiState === AIState.RETREAT) this._aiState = AIState.CHASE;
-            });
+            this._aiState = AIState.RANGED;
         }
     }
 
     _executeAI() {
-        if (this.state === CharacterState.DEAD) return;
-
         switch (this._aiState) {
-            case AIState.CHASE:   this._chaseTarget();   break;
+            case AIState.CHASE:   this._chaseTarget(); break;
             case AIState.ATTACK:  this._attemptAttack(); break;
-            case AIState.RANGED:  this._attemptRanged(); break;
-            case AIState.RETREAT: this._retreat();       break;
-            default:              this.stopHorizontal(); break;
+            case AIState.RANGED:  this.rangedAttack(); break;
+            case AIState.RETREAT: this._retreat(); break;
+            default:              this.stopHorizontal();
         }
     }
 
     _chaseTarget() {
-        if (!this._target) return;
-        if (this._target.x < this.x) this.moveLeft();
-        else                          this.moveRight();
-        if (this.body.blocked.right || this.body.blocked.left) this.jump();
+        const diff = this._target.x - this.x;
+        if (diff > 0) this.moveRight();
+        else this.moveLeft();
     }
 
     _attemptAttack() {
-        if (!this.canAttack) return;
-        this.scene.time.delayedCall(Phaser.Math.Between(0, 300), () => {
-            if (this.isAlive() && this.canAttack) this.attack();
-        });
-    }
-
-    _attemptRanged() {
-        if (!this.canRanged) return;
-        // Orientarse hacia el target antes de disparar
-        if (this._target) {
-            if (this._target.x < this.x) {
-                this.facingRight = false;
-                this.setFlipX(true);
-            } else {
-                this.facingRight = true;
-                this.setFlipX(false);
-            }
-        }
-        this.rangedAttack();
-    }
-
-    _retreat() {
-        if (!this._target) return;
-        if (this._target.x < this.x) this.moveRight();
-        else                          this.moveLeft();
+        this.stopHorizontal();
+        this.setFlipX(this._target.x < this.x);
+        this.attack();
     }
 
     _activateUltimate() {
         if (!this.ultimateReady) return;
-        if (this._isActionLocked()) return;
-
-        this.ultimateEnergy = 0;
-        this.ultimateReady  = false;
+        this.ultimateReady = false;
+        this.#ultimateEnergy = mask(0);
+        this._stopDangerParticles();
+        
+        this.scene.cameras.main.shake(200, 0.01);
         this._ultimate.activate([this._target]);
     }
 
-    _gainEnergy(amount) {
-        if (this.ultimateReady) return;
-        this.ultimateEnergy = Math.min(this.ultimateMaxEnergy, this.ultimateEnergy + amount);
-        this.ultimateReady  = this.ultimateEnergy >= this.ultimateMaxEnergy;
+    _startDangerParticles() {
+        if (this._dangerParticles) this._dangerParticles.emitting = true;
+        this.setTint(0xff0000);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // ANIMACIÓN
-    // ─────────────────────────────────────────────────────────────────────
-    _playAnimation() {
-        switch (this.state) {
-            case CharacterState.ATTACK: this._debugRect.setFillStyle(0xff9900); break;
-            case CharacterState.RANGED: this._debugRect.setFillStyle(0x00ffcc); break;
-            case CharacterState.HURT:   this._debugRect.setFillStyle(0xef4444); break;
-            default:                    this._debugRect.setFillStyle(0xf7df1e); break;
-        }
+    _stopDangerParticles() {
+        if (this._dangerParticles) this._dangerParticles.emitting = false;
+        this.clearTint();
     }
 
     destroy(fromScene) {
-        this._debugRect?.destroy();
-        this._labelText?.destroy();
-        this._ultimate?.destroy();
+        if (this._labelText) this._labelText.destroy();
+        if (this._dangerParticles) this._dangerParticles.destroy();
         super.destroy(fromScene);
     }
 }

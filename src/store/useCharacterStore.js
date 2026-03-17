@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { EventBus } from "../game/EventBus";
 import {
     getCharacter,
     updateSkinColor,
@@ -6,6 +7,7 @@ import {
     updateEyeColor,
     updateOutfit,
     updateAccessory,
+    updateAll,
     resetCharacter,
 } from "../service/playerApi";
 
@@ -17,95 +19,145 @@ const defaultCharacter = {
     outfit: "hoodie",
     outfitColor: "#1e1b4b",
     accessory: "none",
+    ultimateSkill: "FRIDAY_DEPLOY",
+    sprite: "player_default",
+    stats: {
+        hp: 100,
+        speed: 200,
+        attack: 10,
+    },
 };
 
 const useCharacterStore = create((set, get) => ({
-    character: { ...defaultCharacter },
+    character: null,
     isLoading: false,
     isSaving: false,
     error: null,
 
-    //cargar personaje desde la API
     fetchCharacter: async () => {
+        if (get().isLoading) return;
         set({ isLoading: true, error: null });
         try {
             const data = await getCharacter();
-            set({ character: data, isLoading: false });
-        } catch {
-            set({ isLoading: false, error: "Error cargando personaje" });
+            if (!data) throw new Error("No data received");
+
+            const mappedData = {
+                ...data,
+                ultimateSkill: data.ultimate_skill || data.ultimateSkill || "FRIDAY_DEPLOY"
+            };
+
+            set({ character: mappedData, isLoading: false });
+            
+            EventBus.emit("character-data-updated", mappedData);
+        } catch (error) {
+            console.error("Fetch Character Error:", error);
+            set({
+                isLoading: false,
+                error: "Error cargando personaje",
+                character: null,
+            });
         }
     },
 
-    //actualizar campo local (sin guardar aún)
+    saveAttribute: async (attributeName, apiFunction, params) => {
+        set({ isSaving: true, error: null });
+        try {
+            const data = await apiFunction(...params);
+            set({ character: data, isSaving: false });
+            EventBus.emit("character-data-updated", data);
+            return data;
+        } catch (error) {
+            set({
+                isSaving: false,
+                error: `Error al guardar ${attributeName}`,
+            });
+            throw error;
+        }
+    },
     setField: (field, value) => {
         set((state) => ({
-            character: { ...state.character, [field]: value },
+            character: state.character
+                ? { ...state.character, [field]: value }
+                : { ...defaultCharacter, [field]: value },
         }));
+
+        const updatedChar = get().character;
+        if (updatedChar) {
+            EventBus.emit("character-data-updated", updatedChar);
+        }
     },
 
-    //guardar en la API
+    saveAll: async () => {
+        const currentChar = get().character;
+        if (!currentChar) return;
+
+        const selectedSkill = currentChar.ultimateSkill;
+
+        try {
+            const updatedData = await get().saveAttribute("personaje completo", updateAll, [
+                currentChar,
+            ]);
+
+            if (updatedData) {
+                const fixedData = {
+                    ...updatedData,
+                    ultimateSkill: updatedData.ultimateSkill || updatedData.ultimate_skill || selectedSkill
+                };
+                set({ character: fixedData });
+            }
+            return updatedData;
+        } catch (error) {
+            console.error("Error en saveAll:", error);
+        }
+    },
     saveSkinColor: async () => {
-        set({ isSaving: true });
-        try {
-            const { skinColor } = get().character;
-            const data = await updateSkinColor(skinColor);
-            set({ character: data, isSaving: false });
-        } catch {
-            set({ isSaving: false, error: "Error guardando color de piel" });
-        }
+        const char = get().character;
+        if (!char) return;
+        return await get().saveAttribute("tono de piel", updateSkinColor, [
+            char.skinColor,
+        ]);
     },
 
-    saveHair: async () => {
-        set({ isSaving: true });
-        try {
-            const { hairStyle, hairColor } = get().character;
-            const data = await updateHair(hairStyle, hairColor);
-            set({ character: data, isSaving: false });
-        } catch {
-            set({ isSaving: false, error: "Error guardando pelo" });
-        }
+    saveHairStyle: async () => {
+        return await get().saveAttribute("pelo", updateHair, [
+            get().character.hairStyle,
+            get().character.hairColor,
+        ]);
     },
 
-    saveEyeColor: async () => {
-        set({ isSaving: true });
-        try {
-            const { eyeColor } = get().character;
-            const data = await updateEyeColor(eyeColor);
-            set({ character: data, isSaving: false });
-        } catch {
-            set({ isSaving: false, error: "Error guardando color de ojos" });
-        }
+    saveEye: async () => {
+        return await get().saveAttribute("color de ojos", updateEyeColor, [
+            get().character.eyeColor,
+        ]);
     },
 
     saveOutfit: async () => {
-        set({ isSaving: true });
-        try {
-            const { outfit, outfitColor } = get().character;
-            const data = await updateOutfit(outfit, outfitColor);
-            set({ character: data, isSaving: false });
-        } catch {
-            set({ isSaving: false, error: "Error guardando outfit" });
-        }
+        return await get().saveAttribute("ropa", updateOutfit, [
+            get().character.outfit,
+            get().character.outfitColor,
+        ]);
     },
 
     saveAccessory: async () => {
-        set({ isSaving: true });
-        try {
-            const { accessory } = get().character;
-            const data = await updateAccessory(accessory);
-            set({ character: data, isSaving: false });
-        } catch {
-            set({ isSaving: false, error: "Error guardando accesorio" });
-        }
+        return await get().saveAttribute("accesorio", updateAccessory, [
+            get().character.accessory,
+        ]);
     },
+    setUltimate: (skillKey) =>
+        set((state) => ({
+            character: { ...state.character, ultimateSkill: skillKey },
+        })),
 
     reset: async () => {
-        set({ isSaving: true });
+        set({ isSaving: true, error: null });
         try {
             const data = await resetCharacter();
             set({ character: data, isSaving: false });
-        } catch {
+            EventBus.emit("character-data-updated", data);
+            return true;
+        } catch (error) {
             set({ isSaving: false, error: "Error reseteando personaje" });
+            return false;
         }
     },
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import styles from "./MainMenuUI.module.css";
+import { EventBus } from "../../game/EventBus";
 
 export default function MainMenuUI({
     onPlay,
@@ -50,15 +51,20 @@ export default function MainMenuUI({
         };
     }, []);
 
+    const handlePlay = () => {
+        EventBus.emit('user-interacted');
+        onPlay();
+    };
+
+    const handleCredits = () => {
+        EventBus.emit('user-interacted');
+        onCredits();
+    };
+
     return (
         <div className={styles.root}>
-            {/* Grid animado */}
             <div className={styles.grid} />
-
-            {/* Scanlines */}
             <div className={styles.scanlines} />
-
-            {/* Líneas de glitch */}
             <div
                 className={styles.glitchLine}
                 style={{
@@ -83,13 +89,11 @@ export default function MainMenuUI({
                     animationDuration: "5s",
                 }}
             />
-
-            {/* Partículas */}
             <div ref={particlesRef} className={styles.particles} />
-
-            {/* Contenido principal */}
             <div className={styles.content}>
-                <div className={styles.supertitle}>// root@ragnarok:~$ ./game.exe</div>
+                <div className={styles.supertitle}>
+                    // root@ragnarok:~$ ./game.exe
+                </div>
 
                 <div className={styles.titleRow}>
                     <span className={styles.titleWhite}>CODE</span>
@@ -103,19 +107,15 @@ export default function MainMenuUI({
                 </div>
 
                 <div className={styles.buttons}>
-                    <button className={styles.playBtn} onClick={onPlay}>
+                    <button className={styles.playBtn} onClick={handlePlay}>
                         <span>&gt; PLAY</span>
                     </button>
-                    <button className={styles.secondaryBtn} onClick={onCredits}>
+                    <button className={styles.secondaryBtn} onClick={handleCredits}>
                         CREDITS
                     </button>
                 </div>
             </div>
-
-            {/* Versión */}
             <div className={styles.version}>v0.1.0 — alpha</div>
-
-            {/* Overlay de créditos */}
             {showCredits && (
                 <div className={styles.creditsOverlay}>
                     <div className={styles.creditsTitle}>// CREDITS</div>

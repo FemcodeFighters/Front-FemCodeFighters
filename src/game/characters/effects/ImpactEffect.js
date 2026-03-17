@@ -1,5 +1,3 @@
-// Efecto de impacto estilo anime — estrellas, anillos y flash
-
 export default class ImpactEffect {
     constructor(scene) {
         this.scene = scene;
@@ -12,7 +10,6 @@ export default class ImpactEffect {
         this._stars(x, y);
     }
 
-    // ── Flash central ─────────────────────────────────────────────────────
     _flash(x, y) {
         const flash = this.scene.add.circle(x, y, 40, 0xffffff, 0.9);
         flash.setDepth(20);
@@ -39,7 +36,6 @@ export default class ImpactEffect {
         });
     }
 
-    // ── Anillos expansivos ────────────────────────────────────────────────
     _rings(x, y) {
         const colors = [0x7c3aed, 0x00ffc8];
         colors.forEach((color, i) => {
@@ -59,7 +55,6 @@ export default class ImpactEffect {
         });
     }
 
-    // ── Líneas de impacto ─────────────────────────────────────────────────
     _lines(x, y) {
         const count  = 8;
         const colors = [0xffffff, 0x7c3aed, 0x00ffc8];
@@ -89,7 +84,6 @@ export default class ImpactEffect {
         }
     }
 
-    // ── Estrellas de 8 puntas ─────────────────────────────────────────────
     _stars(x, y) {
         const count  = 10;
         const colors = [0xffffff, 0x7c3aed, 0xa855f7, 0xe879f9, 0x00ffc8];
