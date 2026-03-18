@@ -37,31 +37,24 @@ const SVGS = {
 export default class Projectile extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, owner, type = "duck") {
         const textureKey = `projectile-${type}`;
-
         if (!scene.textures.exists(textureKey)) {
             const svgString = SVGS[type] || SVGS.duck;
             const b64 = btoa(unescape(encodeURIComponent(svgString)));
             const dataURI = `data:image/svg+xml;base64,${b64}`;
-
             scene.textures.addBase64(textureKey, dataURI);
         }
-
         super(scene, x, y, textureKey);
-
         scene.add.existing(this);
         scene.physics.add.existing(this);
-
         this.owner = owner;
         this.damage = 30;
         this.speed = 500;
         this.lifespan = 1500;
         this._type = type;
-
-        this.setCollideWorldBounds(false);
         this.body.setAllowGravity(false);
-
         this.setDisplaySize(32, 32);
         this.setDepth(10);
+        this.deathTimer = null;
     }
 
     fire(direction) {
@@ -69,31 +62,22 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
         this.setActive(true);
         this.setVisible(true);
         this.setFlipX(direction < 0);
-
-        this.scene.time.delayedCall(this.lifespan, () => {
+        this.deathTimer = this.scene.time.delayedCall(this.lifespan, () => {
             if (this.active) this._destroyProjectile();
         });
     }
 
     update() {
-        if (!this.active) return;
-
+        if (!this.active || !this.body) return;
         this.setAngle(this.angle + (this._type === "bug" ? 8 : 4));
-
         const { width, height } = this.scene.scale;
-        if (
-            this.x < -100 ||
-            this.x > width + 100 ||
-            this.y < -100 ||
-            this.y > height + 100
-        ) {
+        if (this.x < -100 || this.x > width + 100) {
             this._destroyProjectile();
         }
     }
 
     onHit(target) {
         if (!this.active || target === this.owner) return;
-
         if (typeof target.takeDamage === "function") {
             target.takeDamage(this.damage, this.owner);
         }
@@ -101,6 +85,7 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
     }
 
     _destroyProjectile() {
+        if (this.deathTimer) this.deathTimer.remove();
         this.setActive(false);
         this.setVisible(false);
         this.destroy();

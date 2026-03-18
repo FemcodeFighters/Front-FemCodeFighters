@@ -1,0 +1,86 @@
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    background: rgba(2, 4, 8, 0.7);
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    padding: 40px;
+    pointer-events: auto;
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.glitchWrapper {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.title {
+    font-family: "Orbitron", sans-serif;
+    font-size: 32px;
+    color: #00ffc8;
+    text-shadow: 0 0 15px rgba(0, 255, 200, 0.5);
+    letter-spacing: 4px;
+}
+
+.tableWrapper {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Share Tech Mono", monospace;
+}
+
+.table th {
+    color: rgba(0, 255, 200, 0.5);
+    font-size: 12px;
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid rgba(0, 255, 200, 0.2);
+}
+
+.table td {
+    padding: 12px 10px;
+    color: #fff;
+    font-size: 16px;
+}
+
+.topPlayer td {
+    color: #00ffc8;
+    background: rgba(0, 255, 200, 0.05);
+}
+
+.rank {
+    width: 10%;
+}
+.username {
+    width: 40%;
+}
+.wins {
+    color: #00ffc8;
+}
+.losses {
+    color: #ff0055;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

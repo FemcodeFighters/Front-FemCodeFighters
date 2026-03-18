@@ -14,24 +14,32 @@ export default class Ultimate {
     activate(targets) {
         if (this._active) return;
         this._active = true;
+        const validTargets = Array.isArray(targets)
+            ? targets.filter((t) => t && t.active)
+            : [];
         switch (this.skillKey) {
             case "FRIDAY_DEPLOY":
                 this._executeFridayDeploy();
                 break;
             case "SPAGHETTI_CODE":
-                this._executeSpaghettiCode(targets);
+            case "TAG SOUP ATTACK":
+            case "Z-INDEX EXPLOSION":
+            case "SPAGHETTI CRASH":
+            case "RE-RENDER OVERLOAD":
+            case "NULL POINTER EXCEPTION":
+            case "BEAN CREATION FATAL":
+                this._executeSpaghettiCode(validTargets);
                 break;
             case "GIT_CLONE":
-                this._executeGitClone(targets);
+                this._executeGitClone(validTargets);
                 break;
             default:
-                this._executeDashAttack(targets);
+                this._active = false;
         }
     }
 
     _executeFridayDeploy() {
         this.owner.isInvincible = true;
-
         for (let i = 0; i < 15; i++) {
             this.scene.time.delayedCall(i * 50, () => {
                 const x = this.owner.x + Phaser.Math.Between(-50, 50);
@@ -40,7 +48,6 @@ export default class Ultimate {
                     color: "#00ff00",
                     fontSize: "12px",
                 });
-
                 this.scene.tweens.add({
                     targets: txt,
                     y: y - 100,
@@ -50,7 +57,6 @@ export default class Ultimate {
                 });
             });
         }
-
         this.owner.setTint(0x00ff00);
         this.scene.time.delayedCall(500, () => {
             this.owner.clearTint();
@@ -60,8 +66,7 @@ export default class Ultimate {
     }
 
     _executeSpaghettiCode(targets) {
-        const direction = this.owner.facingRight ? 1 : -1;
-
+        const direction = this.owner.flipX ? -1 : 1;
         for (let i = 0; i < 10; i++) {
             const curve = new Phaser.Curves.Spline([
                 this.owner.x,
@@ -71,10 +76,7 @@ export default class Ultimate {
                 this.owner.x + 300 * direction,
                 this.owner.y + Phaser.Math.Between(-20, 20),
             ]);
-
             const graphics = this.scene.add.graphics();
-            graphics.lineStyle(3, 0xffff00, 1);
-
             this.scene.tweens.addCounter({
                 from: 0,
                 to: 1,
@@ -112,14 +114,10 @@ export default class Ultimate {
             .setAlpha(0.5)
             .setTint(0x3b82f6)
             .setScale(this.owner.scaleX, this.owner.scaleY);
-
         this.scene.physics.add.existing(clone);
-        const direction = this.owner.facingRight ? 1 : -1;
-
+        const direction = this.owner.flipX ? -1 : 1;
         clone.body.setVelocityX(1200 * direction);
-
         this.scene.time.delayedCall(300, () => {
-            this._spawnImpactEffect(clone.x, clone.y);
             targets.forEach((t) => {
                 if (
                     Phaser.Math.Distance.Between(clone.x, clone.y, t.x, t.y) <
@@ -128,17 +126,8 @@ export default class Ultimate {
                     t.takeDamage(30, this.owner);
                 }
             });
-
             clone.destroy();
             this._active = false;
         });
-    }
-
-    _executeDashAttack(targets) {
-        // aquí código de activate/strikeFinisher
-    }
-
-    _spawnImpactEffect(x, y) {
-        //código original de impacto
     }
 }

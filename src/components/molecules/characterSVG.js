@@ -1,6 +1,6 @@
 function darken(hex, amount = 30) {
-    if (!hex || typeof hex !== "string" || !hex.startsWith("#"))
-        return "#000000";
+    if (!hex || typeof hex !== "string") return "#000000";
+
     try {
         let cleanHex = hex.replace("#", "");
         if (cleanHex.length === 3) {
@@ -9,10 +9,12 @@ function darken(hex, amount = 30) {
                 .map((char) => char + char)
                 .join("");
         }
+
         const n = parseInt(cleanHex, 16);
-        const r = Math.max(0, (n >> 16) - amount);
-        const g = Math.max(0, ((n >> 8) & 0xff) - amount);
-        const b = Math.max(0, (n & 0xff) - amount);
+        let r = Math.max(0, (n >> 16) - amount);
+        let g = Math.max(0, ((n >> 8) & 0xff) - amount);
+        let b = Math.max(0, (n & 0xff) - amount);
+
         return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
     } catch (e) {
         return "#000000";
@@ -21,6 +23,7 @@ function darken(hex, amount = 30) {
 
 function lighten(hex, amount = 30) {
     if (!hex || hex === "none" || typeof hex !== "string") return "#ffffff";
+
     try {
         let cleanHex = hex.replace("#", "");
         if (cleanHex.length === 3) {
@@ -29,10 +32,12 @@ function lighten(hex, amount = 30) {
                 .map((char) => char + char)
                 .join("");
         }
+
         const n = parseInt(cleanHex, 16);
-        const r = Math.min(255, (n >> 16) + amount);
-        const g = Math.min(255, ((n >> 8) & 0xff) + amount);
-        const b = Math.min(255, (n & 0xff) + amount);
+        let r = Math.min(255, (n >> 16) + amount);
+        let g = Math.min(255, ((n >> 8) & 0xff) + amount);
+        let b = Math.min(255, (n & 0xff) + amount);
+
         return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
     } catch (e) {
         return "#ffffff";
@@ -40,7 +45,6 @@ function lighten(hex, amount = 30) {
 }
 
 export function generateCharacterFrames(character = {}, anim = "idle") {
-    const data = character && typeof character === "object" ? character : {};
     const {
         skinColor = "#f5c5a3",
         hairColor = "#7c3aed",
@@ -48,15 +52,19 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
         eyeColor = "#2563eb",
         outfitColor = "#1e1b4b",
         accessory = "none",
-    } = data;
+    } = character || {};
 
     const hd = darken(hairColor, 30);
     const ol = lighten(outfitColor, 30);
     const sd = darken(skinColor, 20);
     const ed = darken(eyeColor, 20);
 
-    const wrap = (content) =>
-        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 160" width="80" height="160">${content}</svg>`;
+    const wrap = (content) => `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+            <g transform="translate(24, -10)"> 
+                ${content} 
+            </g>
+        </svg>`;
 
     const torso = (oy = 0) => `
         <rect x="36" y="${54 + oy}" width="8" height="8" rx="2" fill="${skinColor}"/>
@@ -106,10 +114,12 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
             expr === "hurt"
                 ? `<path d="M28 ${32 + oy} L38 ${36 + oy}" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
                 : `<path d="M26 ${29 + oy} Q32 ${26 + oy} 38 ${29 + oy}" stroke="#0a0a0a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+
         const eyebrowR =
             expr === "hurt"
                 ? `<path d="M42 ${36 + oy} L52 ${32 + oy}" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
                 : `<path d="M42 ${29 + oy} Q48 ${26 + oy} 54 ${29 + oy}" stroke="#0a0a0a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+
         const mouth =
             expr === "hurt"
                 ? `<path d="M34 ${48 + oy} Q40 ${45 + oy} 46 ${48 + oy}" stroke="${sd}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
@@ -267,8 +277,7 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
                 legsIdle +
                     torso(0) +
                     armL(10) +
-                    `<path d="M58 69 L90 58 L92 65 L62 74 Z" fill="${outfitColor}"/><ellipse cx="92" cy="61" rx="7" ry="6" fill="${skinColor}"/>
-                 <circle cx="96" cy="58" r="8" fill="#f59e0b" opacity="0.2"/>` +
+                    `<path d="M58 69 L90 58 L92 65 L62 74 Z" fill="${outfitColor}"/><ellipse cx="92" cy="61" rx="7" ry="6" fill="${skinColor}"/><circle cx="96" cy="58" r="8" fill="#f59e0b" opacity="0.2"/>` +
                     headBase(0),
             ),
             wrap(legsIdle + torso(0) + armL(5) + armR(10) + headBase(0)),
@@ -278,16 +287,14 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
                 `<path d="M28 108 Q24 122 23 140 Q26 144 30 140 Q32 124 34 108 Z" fill="${outfitColor}"/><ellipse cx="25" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>
                   <path d="M52 108 Q56 122 57 140 Q54 144 50 140 Q48 124 46 108 Z" fill="${outfitColor}"/><ellipse cx="55" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>` +
                     torso(0) +
-                    `<path d="M22 69 Q18 78 20 94 L26 90 L26 72 Z" fill="${outfitColor}"/><ellipse cx="19" cy="96" rx="6" ry="6" fill="${skinColor}"/>
-                 <path d="M58 69 Q62 78 60 94 L54 90 L54 72 Z" fill="${outfitColor}"/><ellipse cx="61" cy="96" rx="6" ry="6" fill="${skinColor}"/>` +
+                    `<path d="M22 69 Q18 78 20 94 L26 90 L26 72 Z" fill="${outfitColor}"/><ellipse cx="19" cy="96" rx="6" ry="6" fill="${skinColor}"/><path d="M58 69 Q62 78 60 94 L54 90 L54 72 Z" fill="${outfitColor}"/><ellipse cx="61" cy="96" rx="6" ry="6" fill="${skinColor}"/>` +
                     headBase(0, "hurt"),
             ),
             wrap(
                 `<path d="M28 108 Q24 122 23 140 Q26 144 30 140 Q32 124 34 108 Z" fill="${outfitColor}"/><ellipse cx="25" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>
                   <path d="M52 108 Q56 122 57 140 Q54 144 50 140 Q48 124 46 108 Z" fill="${outfitColor}"/><ellipse cx="55" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>` +
                     torso(2) +
-                    `<path d="M22 71 Q14 80 16 96 L22 92 L26 74 Z" fill="${outfitColor}"/><ellipse cx="15" cy="98" rx="6" ry="6" fill="${skinColor}"/>
-                 <path d="M58 71 Q66 80 64 96 L58 92 L54 74 Z" fill="${outfitColor}"/><ellipse cx="65" cy="98" rx="6" ry="6" fill="${skinColor}"/>` +
+                    `<path d="M22 71 Q14 80 16 96 L22 92 L26 74 Z" fill="${outfitColor}"/><ellipse cx="15" cy="98" rx="6" ry="6" fill="${skinColor}"/><path d="M58 71 Q66 80 64 96 L58 92 L54 74 Z" fill="${outfitColor}"/><ellipse cx="65" cy="98" rx="6" ry="6" fill="${skinColor}"/>` +
                     headBase(2, "hurt"),
             ),
         ],

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import styles from "./MainMenuUI.module.css";
-import { EventBus } from "../../game/EventBus";
+import { EventBus } from "../../../game/EventBus";
 
 export default function MainMenuUI({
     onPlay,
@@ -52,12 +52,12 @@ export default function MainMenuUI({
     }, []);
 
     const handlePlay = () => {
-        EventBus.emit('user-interacted');
+        EventBus.emit("user-interacted");
         onPlay();
     };
 
     const handleCredits = () => {
-        EventBus.emit('user-interacted');
+        EventBus.emit("user-interacted");
         onCredits();
     };
 
@@ -110,7 +110,10 @@ export default function MainMenuUI({
                     <button className={styles.playBtn} onClick={handlePlay}>
                         <span>&gt; PLAY</span>
                     </button>
-                    <button className={styles.secondaryBtn} onClick={handleCredits}>
+                    <button
+                        className={styles.secondaryBtn}
+                        onClick={handleCredits}
+                    >
                         CREDITS
                     </button>
                 </div>

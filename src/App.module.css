@@ -20,19 +20,21 @@
 
 .app {
     position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .hud {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    width: 100%;
+    height: auto;
+    z-index: 999;
     pointer-events: none;
-    z-index: 10;
+    display: flex;
+    justify-content: center;
 }
 
 .hudPlayer {
@@ -48,6 +50,12 @@
     flex-direction: column;
     gap: 5px;
     align-items: flex-end;
+}
+
+.hudPlayer,
+.hudEnemy {
+    min-width: 300px;
+    pointer-events: auto;
 }
 
 .hudVs {
@@ -184,4 +192,33 @@
 .cooldownText {
     font-size: 10px;
     font-family: monospace;
+}
+
+.shake {
+    animation: shakeHUD 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shakeHUD {
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0);
+    }
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+.damaged {
+    filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(5);
+    transition: filter 0.1s;
 }

@@ -40,7 +40,8 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
         this.body.setAllowGravity(true);
         this.body.setMaxVelocity(this.speed, 1000);
         this.body.setOffset(0, 0);
-
+        this.originalScaleX = this.scaleX;
+        this.originalScaleY = this.scaleY;
         this.state = CharacterState.IDLE;
         this.facingRight = true;
         this.isOnGround = false;
@@ -81,6 +82,22 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
 
     get attackDamage() {
         return unmask(this.#attackDamage);
+    }
+
+    set hp(value) {
+        const max = unmask(this.#maxHP);
+        const newHP = Phaser.Math.Clamp(value, 0, max);
+        this.#currentHP = mask(newHP);
+
+        this.emit("healthChanged", newHP, max);
+
+        if (typeof this._syncWithReact === "function") {
+            this._syncWithReact();
+        }
+    }
+
+    set maxHP(value) {
+        this.#maxHP = mask(value);
     }
 
     update(_delta) {
@@ -162,14 +179,16 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
 
         this.setState(CharacterState.RANGED);
         this.canRanged = false;
+        const spawnY = this.y - this.displayHeight / 2;
 
         const projectile = new Projectile(
             this.scene,
             this.x,
-            this.y,
+            spawnY,
             this,
             this.projectileType ?? "duck",
         );
+
         this.projectiles.add(projectile);
         projectile.fire(this.facingRight ? 1 : -1);
         soundManager.playRangedShot();
@@ -190,10 +209,10 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
     takeDamage(amount, source) {
         if (this.isInvincible || this.state === CharacterState.DEAD) return;
         let current = unmask(this.#currentHP);
-        current = Math.max(0, current - amount);
+        current = Phaser.Math.Clamp(current - amount, 0, unmask(this.#maxHP));
         this.#currentHP = mask(current);
         this._impactEffect.play(this.x, this.y);
-        if (window.soundManager) soundManager.playHurt();
+        soundManager.playHurt();
         this.emit("healthChanged", this.hp, this.maxHP);
         if (current <= 0) {
             this._die();
@@ -278,6 +297,22 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
                 this.state === CharacterState.FALL
             ) {
                 this.setState(CharacterState.IDLE);
+                this.scene.tweens.add({
+                    targets: this,
+                    scaleY: 0.8,
+                    scaleX: this.scaleX * 1.2,
+                    duration: 100,
+                    yoyo: true,
+                    ease: "Quad.easeOut",
+                    onComplete: () => {
+                        this.setScale(
+                            this.facingRight
+                                ? this.originalScaleX
+                                : -this.originalScaleX,
+                            this.originalScaleY,
+                        );
+                    },
+                });
             }
         }
 
@@ -302,10 +337,14 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     _updateHitBoxPosition() {
+        const halfWidth = this.displayWidth / 2;
         const offsetX = this.facingRight
-            ? this.x + this.width / 2
-            : this.x - this.width / 2 - this.attackRange;
-        this._attackHitBox.setPosition(offsetX + this.attackRange / 2, this.y);
+            ? this.x + halfWidth
+            : this.x - halfWidth - this.attackRange;
+        this._attackHitBox.setPosition(
+            offsetX + this.attackRange / 2,
+            this.y - 10,
+        );
     }
 
     _showHitBoxFor(duration) {

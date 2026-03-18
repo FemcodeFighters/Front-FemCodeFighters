@@ -17,7 +17,6 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
                 </div>
 
                 <div className={styles.cards}>
-                    {/* ── Solo ── */}
                     <div className={styles.card} onClick={onSelectSolo}>
                         <div className={styles.cardIcon}>⚔️</div>
                         <div className={styles.cardTitle}>SOLO</div>
@@ -31,7 +30,6 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
                         <div className={styles.tagReady}>DISPONIBLE</div>
                     </div>
 
-                    {/* ── Co-op online (próximamente) ── */}
                     <div className={styles.cardDisabled}>
                         <div className={styles.cardIcon}>🌐</div>
                         <div className={styles.cardTitle}>CO-OP ONLINE</div>

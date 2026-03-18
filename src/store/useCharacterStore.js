@@ -43,11 +43,14 @@ const useCharacterStore = create((set, get) => ({
 
             const mappedData = {
                 ...data,
-                ultimateSkill: data.ultimate_skill || data.ultimateSkill || "FRIDAY_DEPLOY"
+                ultimateSkill:
+                    data.ultimate_skill ||
+                    data.ultimateSkill ||
+                    "FRIDAY_DEPLOY",
             };
 
             set({ character: mappedData, isLoading: false });
-            
+
             EventBus.emit("character-data-updated", mappedData);
         } catch (error) {
             console.error("Fetch Character Error:", error);
@@ -90,20 +93,28 @@ const useCharacterStore = create((set, get) => ({
     saveAll: async () => {
         const currentChar = get().character;
         if (!currentChar) return;
-
-        const selectedSkill = currentChar.ultimateSkill;
+        const dataToSave = {
+            ...currentChar,
+            ultimate_skill: currentChar.ultimateSkill,
+        };
 
         try {
-            const updatedData = await get().saveAttribute("personaje completo", updateAll, [
-                currentChar,
-            ]);
+            const updatedData = await get().saveAttribute(
+                "personaje completo",
+                updateAll,
+                [dataToSave],
+            );
 
             if (updatedData) {
                 const fixedData = {
                     ...updatedData,
-                    ultimateSkill: updatedData.ultimateSkill || updatedData.ultimate_skill || selectedSkill
+                    ultimateSkill:
+                        updatedData.ultimate_skill ||
+                        updatedData.ultimateSkill ||
+                        currentChar.ultimateSkill,
                 };
                 set({ character: fixedData });
+                EventBus.emit("character-data-updated", fixedData);
             }
             return updatedData;
         } catch (error) {

@@ -72,7 +72,8 @@ export const updateAll = async (character) => {
         outfit: character.outfit || "basic",
         outfitColor: formatColor(character.outfitColor),
         accessory: character.accessory || "none",
-        ultimateSkill: character.ultimateSkill || "FRIDAY_DEPLOY"
+        ultimateSkill: character.ultimateSkill || "FRIDAY_DEPLOY",
+        ultimate_skill: character.ultimateSkill || "FRIDAY_DEPLOY",
     });
     return response.data;
 };
@@ -88,12 +89,25 @@ export const useUltimateSkill = async () => {
 };
 
 export const getRanking = async () => {
-    const response = await api.get("/api/player/ranking");
-    return response.data;
+    try {
+        const response = await api.get("/api/player/ranking");
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error("Error al obtener ranking:", error);
+        return [];
+    }
 };
 
 export const updateCombatStats = async (won) => {
-    const result = Boolean(won);
-    const response = await api.post(`/api/player/combat-result/${result}`);
-    return response.data;
+    try {
+        const result = won ? "true" : "false";
+        const response = await api.post(
+            `/api/player/combat-result/${result}`,
+            {},
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error en Stats:", error.response?.data || error.message);
+        throw error;
+    }
 };

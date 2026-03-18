@@ -3,6 +3,7 @@ import { GameOver } from "./scenes/GameOver";
 import { MainMenu } from "./scenes/MainMenu";
 import { Preloader } from "./scenes/Preloader";
 import CombatScene from "./scenes/CombatScene";
+import RankingScene from "./scenes/RankingScene";
 import Phaser from "phaser";
 
 const config = {
@@ -21,9 +22,9 @@ const config = {
     audio: {
         disableWebAudio: false,
         noAudio: false,
-        context: undefined
+        context: undefined,
     },
-    scene: [Boot, Preloader, MainMenu, CombatScene, GameOver],
+    scene: [Boot, Preloader, MainMenu, CombatScene, GameOver, RankingScene],
 };
 
 const StartGame = (parent) => {

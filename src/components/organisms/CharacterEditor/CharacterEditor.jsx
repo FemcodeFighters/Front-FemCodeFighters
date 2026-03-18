@@ -5,26 +5,28 @@ import ColorSwatch from "../../atoms/ColorSwatch";
 import OptionButton from "../../atoms/OptionButton";
 import useCharacterStore from "../../../store/useCharacterStore";
 
-// Información de las habilidades para la nueva pestaña
 const ULTIMATE_INFO = {
     FRIDAY_DEPLOY: {
         name: "FRIDAY DEPLOY",
-        description: "Despliegue arriesgado en viernes. Te vuelve invulnerable temporalmente y regeneras 30 HP de código base.",
+        description:
+            "Despliegue arriesgado en viernes. Te vuelve invulnerable temporalmente y regeneras 30 HP de código base.",
         stats: "HEAL: +30 | INVULNERABLE: 0.5s",
-        color: "#00ffc8"
+        color: "#00ffc8",
     },
     SPAGHETTI_CODE: {
         name: "SPAGHETTI CODE",
-        description: "Lanzas una maraña de código sin documentar que enreda a los enemigos, causando daño por cada tick.",
+        description:
+            "Lanzas una maraña de código sin documentar que enreda a los enemigos, causando daño por cada tick.",
         stats: "DAMAGE: 5/tick | DURATION: 5s",
-        color: "#f59e0b"
+        color: "#f59e0b",
     },
     GIT_CLONE: {
         name: "GIT CLONE",
-        description: "Creas una instancia duplicada que embiste a toda velocidad infligiendo 30 de daño masivo.",
+        description:
+            "Creas una instancia duplicada que embiste a toda velocidad infligiendo 30 de daño masivo.",
         stats: "DAMAGE: 30 | CLONE_LIFE: 6s",
-        color: "#3b82f6"
-    }
+        color: "#3b82f6",
+    },
 };
 
 const SKIN_COLORS = ["#f5c5a3", "#e8a882", "#c68642", "#8d5524", "#4a2912"];
@@ -77,7 +79,6 @@ const ACCESSORIES = [
     { value: "headphones", label: "AURICULARES" },
 ];
 
-// Añadimos "HABILIDAD" al array de pestañas
 const TABS = ["PIEL", "PELO", "OJOS", "OUTFIT", "ACCESORIO", "HABILIDAD"];
 
 export default function CharacterEditor({
@@ -109,17 +110,14 @@ export default function CharacterEditor({
     }, [activeTab, clearError]);
 
     const handleSave = async () => {
-        try {
-            // Guardamos el valor actual antes de disparar el save
-            const selectedSkill = character.ultimateSkill; 
-             await saveAll();
-            // Forzamos que el campo se mantenga después del guardado 
-            // por si el fetch del servidor viene vacío
-            setField("ultimateSkill", selectedSkill); 
-         } catch (err) {
-         console.error("Error al guardar:", err);
-        }
-    };
+    try {
+        await saveAll(); 
+        await fetchCharacter(); 
+        alert("Configuración neural guardada con éxito.");
+    } catch (err) {
+        console.error("Error crítico al guardar:", err);
+    }
+};
 
     if (isLoading) {
         return (
@@ -136,7 +134,10 @@ export default function CharacterEditor({
         return (
             <div className={styles.root}>
                 <div className={styles.grid} />
-                <div className={styles.loadingText} style={{ color: "#ef4444" }}>
+                <div
+                    className={styles.loadingText}
+                    style={{ color: "#ef4444" }}
+                >
                     // ERROR: PERFIL NEURAL NO ENCONTRADO
                     <button
                         onClick={onLogout}
@@ -150,15 +151,10 @@ export default function CharacterEditor({
         );
     }
 
-   // 1. Extraemos la clave actual del personaje
     const skillKey = character?.ultimateSkill;
 
-    // 2. Buscamos en el objeto ULTIMATE_INFO. 
-    // Si por alguna razón skillKey es undefined o no existe, 
-    // usamos FRIDAY_DEPLOY como fallback automático para evitar el mensaje de error.
     const currentSkill = ULTIMATE_INFO[skillKey] || ULTIMATE_INFO.FRIDAY_DEPLOY;
 
-    // 3. Log de control para ver qué objeto está cargando la UI
     console.log("Renderizando con habilidad:", currentSkill.name);
     return (
         <div className={styles.root}>
@@ -211,14 +207,18 @@ export default function CharacterEditor({
                     <div className={styles.scrollArea}>
                         {activeTab === "PIEL" && (
                             <>
-                                <div className={styles.sectionTitle}>// TONO DE DERMIS</div>
+                                <div className={styles.sectionTitle}>
+                                    // TONO DE DERMIS
+                                </div>
                                 <div className={styles.swatches}>
                                     {SKIN_COLORS.map((c) => (
                                         <ColorSwatch
                                             key={c}
                                             color={c}
                                             active={character.skinColor === c}
-                                            onClick={(v) => setField("skinColor", v)}
+                                            onClick={(v) =>
+                                                setField("skinColor", v)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -227,25 +227,35 @@ export default function CharacterEditor({
 
                         {activeTab === "PELO" && (
                             <>
-                                <div className={styles.sectionTitle}>// ESTILO CAPILAR</div>
+                                <div className={styles.sectionTitle}>
+                                    // ESTILO CAPILAR
+                                </div>
                                 <div className={styles.optionRow}>
                                     {HAIR_STYLES.map(({ value, label }) => (
                                         <OptionButton
                                             key={value}
                                             label={label}
-                                            active={character.hairStyle === value}
-                                            onClick={() => setField("hairStyle", value)}
+                                            active={
+                                                character.hairStyle === value
+                                            }
+                                            onClick={() =>
+                                                setField("hairStyle", value)
+                                            }
                                         />
                                     ))}
                                 </div>
-                                <div className={styles.sectionTitle}>// PIGMENTACIÓN</div>
+                                <div className={styles.sectionTitle}>
+                                    // PIGMENTACIÓN
+                                </div>
                                 <div className={styles.swatches}>
                                     {HAIR_COLORS.map((c) => (
                                         <ColorSwatch
                                             key={c}
                                             color={c}
                                             active={character.hairColor === c}
-                                            onClick={(v) => setField("hairColor", v)}
+                                            onClick={(v) =>
+                                                setField("hairColor", v)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -254,14 +264,18 @@ export default function CharacterEditor({
 
                         {activeTab === "OJOS" && (
                             <>
-                                <div className={styles.sectionTitle}>// SCANNER OCULAR</div>
+                                <div className={styles.sectionTitle}>
+                                    // SCANNER OCULAR
+                                </div>
                                 <div className={styles.swatches}>
                                     {EYE_COLORS.map((c) => (
                                         <ColorSwatch
                                             key={c}
                                             color={c}
                                             active={character.eyeColor === c}
-                                            onClick={(v) => setField("eyeColor", v)}
+                                            onClick={(v) =>
+                                                setField("eyeColor", v)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -270,25 +284,33 @@ export default function CharacterEditor({
 
                         {activeTab === "OUTFIT" && (
                             <>
-                                <div className={styles.sectionTitle}>// EQUIPAMIENTO</div>
+                                <div className={styles.sectionTitle}>
+                                    // EQUIPAMIENTO
+                                </div>
                                 <div className={styles.optionRow}>
                                     {OUTFITS.map(({ value, label }) => (
                                         <OptionButton
                                             key={value}
                                             label={label}
                                             active={character.outfit === value}
-                                            onClick={() => setField("outfit", value)}
+                                            onClick={() =>
+                                                setField("outfit", value)
+                                            }
                                         />
                                     ))}
                                 </div>
-                                <div className={styles.sectionTitle}>// COLOR DE UNIDAD</div>
+                                <div className={styles.sectionTitle}>
+                                    // COLOR DE UNIDAD
+                                </div>
                                 <div className={styles.swatches}>
                                     {OUTFIT_COLORS.map((c) => (
                                         <ColorSwatch
                                             key={c}
                                             color={c}
                                             active={character.outfitColor === c}
-                                            onClick={(v) => setField("outfitColor", v)}
+                                            onClick={(v) =>
+                                                setField("outfitColor", v)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -297,14 +319,20 @@ export default function CharacterEditor({
 
                         {activeTab === "ACCESORIO" && (
                             <>
-                                <div className={styles.sectionTitle}>// MÓDULOS EXTRA</div>
+                                <div className={styles.sectionTitle}>
+                                    // MÓDULOS EXTRA
+                                </div>
                                 <div className={styles.optionRow}>
                                     {ACCESSORIES.map(({ value, label }) => (
                                         <OptionButton
                                             key={value}
                                             label={label}
-                                            active={character.accessory === value}
-                                            onClick={() => setField("accessory", value)}
+                                            active={
+                                                character.accessory === value
+                                            }
+                                            onClick={() =>
+                                                setField("accessory", value)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -313,27 +341,43 @@ export default function CharacterEditor({
 
                         {activeTab === "HABILIDAD" && (
                             <>
-                                <div className={styles.sectionTitle}>// NÚCLEO DE ULTIMATE</div>
-                                <div className={styles.optionRow}>
-                                   {Object.keys(ULTIMATE_INFO).map((key) => (
-    <OptionButton
-        key={key}
-        label={ULTIMATE_INFO[key].name}
-        // Comparamos la key del bucle con lo que tiene el personaje
-        active={character.ultimateSkill === key} 
-        onClick={() => setField("ultimateSkill", key)}
-    />
-))}
+                                <div className={styles.sectionTitle}>
+                                    // NÚCLEO DE ULTIMATE
                                 </div>
-                                
-                                {/* Caja informativa de la habilidad */}
-                                <div className={styles.skillDescriptionBox} style={{ borderLeftColor: currentSkill.color }}>
-                                    <div className={styles.skillDescTitle} style={{ color: currentSkill.color }}>
+                                <div className={styles.optionRow}>
+                                    {Object.keys(ULTIMATE_INFO).map((key) => (
+                                        <OptionButton
+                                            key={key}
+                                            label={ULTIMATE_INFO[key].name}
+                                            active={
+                                                character.ultimateSkill === key
+                                            }
+                                            onClick={() =>
+                                                setField("ultimateSkill", key)
+                                            }
+                                        />
+                                    ))}
+                                </div>
+
+                                <div
+                                    className={styles.skillDescriptionBox}
+                                    style={{
+                                        borderLeftColor: currentSkill.color,
+                                    }}
+                                >
+                                    <div
+                                        className={styles.skillDescTitle}
+                                        style={{ color: currentSkill.color }}
+                                    >
                                         {currentSkill.name}
                                     </div>
-                                    <p className={styles.skillDescText}>{currentSkill.description}</p>
+                                    <p className={styles.skillDescText}>
+                                        {currentSkill.description}
+                                    </p>
                                     <div className={styles.skillDescStats}>
-                                        <code>SYSTEM_OUTPUT: {currentSkill.stats}</code>
+                                        <code>
+                                            SYSTEM_OUTPUT: {currentSkill.stats}
+                                        </code>
                                     </div>
                                 </div>
                             </>

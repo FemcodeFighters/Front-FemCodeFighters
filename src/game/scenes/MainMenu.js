@@ -12,57 +12,61 @@ export class MainMenu extends Scene {
     }
 
     create() {
+        this.isChangingScene = false;
         const { width, height } = this.scale;
         this.add.rectangle(width / 2, height / 2, width, height, 0x020408);
-
-        if (this.cache.audio.exists('menu_theme')) {
-            this.menuMusic = this.sound.add('menu_theme', { loop: true, volume: 0.5 });
-            console.log("Música cargada correctamente.");
+        if (this.cache.audio.exists("menu_theme")) {
+            this.menuMusic = this.sound.add("menu_theme", {
+                loop: true,
+                volume: 0.5,
+            });
+            console.log("Música de menú preparada.");
         }
 
         const startMusic = () => {
             if (!this.menuMusic) return;
-
-            if (this.sound.context.state !== 'running') {
+            if (this.sound.context.state !== "running") {
                 this.sound.context.resume().then(() => {
                     if (!this.menuMusic.isPlaying) {
                         this.menuMusic.play();
-                        console.log("¡Audio desbloqueado y sonando!");
+                        console.log("¡Audio desbloqueado!");
                     }
                 });
             } else {
                 if (!this.menuMusic.isPlaying) this.menuMusic.play();
             }
         };
-
-        EventBus.on('user-interacted', startMusic);
-        
+        EventBus.on("user-interacted", startMusic);
         EventBus.on("start-solo-game", () => {
-            startMusic(); 
+            console.log("Iniciando partida solo...");
+            startMusic();
             this.changeScene();
         });
-
-        this.input.once("pointerdown", startMusic);
-        this.player = this.add.sprite(width / 2, height / 2 + 50, "").setScale(2);
         const onUpdate = (data) => this.updatePlayerAnimation(data);
         EventBus.on("character-data-updated", onUpdate);
-
+        this.input.once("pointerdown", startMusic);
+        this.player = this.add
+            .sprite(width / 2, height / 2 + 50, "")
+            .setScale(2);
         this.events.on("shutdown", () => {
-            EventBus.off('user-interacted', startMusic);
+            EventBus.off("user-interacted", startMusic);
             EventBus.off("start-solo-game");
             EventBus.off("character-data-updated", onUpdate);
-            
             if (this.menuMusic) {
                 this.tweens.add({
                     targets: this.menuMusic,
                     volume: 0,
                     duration: 400,
-                    onComplete: () => this.menuMusic.stop(),
+                    onComplete: () => {
+                        if (this.menuMusic) this.menuMusic.stop();
+                    },
                 });
             }
         });
-
-        this.updatePlayerAnimation(useCharacterStore.getState().character);
+        const initialCharacter = useCharacterStore.getState().character;
+        if (initialCharacter) {
+            this.updatePlayerAnimation(initialCharacter);
+        }
         EventBus.emit("current-scene-ready", this);
     }
 
@@ -71,16 +75,16 @@ export class MainMenu extends Scene {
         const currentBatchId = this.updateCounter;
         const framesSVG = generateCharacterFrames(characterData, "idle");
         const frameKeys = [];
-
         const promises = framesSVG.map((svgString, index) => {
             return new Promise((resolve) => {
                 const img = new Image();
                 const cleanSvg = svgString.replace(/="0"/g, '="#000000"');
-                const svgBlob = new Blob([cleanSvg], { type: "image/svg+xml;charset=utf-8" });
+                const svgBlob = new Blob([cleanSvg], {
+                    type: "image/svg+xml;charset=utf-8",
+                });
                 const url = URL.createObjectURL(svgBlob);
                 const key = `p_${currentBatchId}_${index}`;
                 frameKeys.push(key);
-
                 img.onload = () => {
                     if (this.textures) this.textures.addImage(key, img);
                     URL.revokeObjectURL(url);
@@ -89,10 +93,8 @@ export class MainMenu extends Scene {
                 img.src = url;
             });
         });
-
         await Promise.all(promises);
         if (currentBatchId !== this.updateCounter) return;
-
         const animKey = `idle_${currentBatchId}`;
         this.anims.create({
             key: animKey,
@@ -106,12 +108,10 @@ export class MainMenu extends Scene {
     changeScene() {
         if (this.isChangingScene) return;
         this.isChangingScene = true;
-        
         if (!this.cameras || !this.cameras.main) {
             this.scene.start("CombatScene");
             return;
         }
-
         EventBus.emit("main-menu-leave");
         this.cameras.main.fade(400, 0, 0, 0);
         this.time.delayedCall(450, () => {
