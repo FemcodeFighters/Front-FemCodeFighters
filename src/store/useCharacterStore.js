@@ -173,6 +173,7 @@ const useCharacterStore = create((set, get) => ({
     },
 
     clearError: () => set({ error: null }),
+    clearCharacter: () => set({ character: null, error: null, isLoading: false, isSaving: false }),
 }));
 
 export default useCharacterStore;

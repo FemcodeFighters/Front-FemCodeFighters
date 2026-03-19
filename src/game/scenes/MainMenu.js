@@ -24,6 +24,10 @@ export class MainMenu extends Scene {
         }
 
         const startMusic = () => {
+            if (!this.sound || !this.sound.context) return;
+            if (this.sound.context.state === "suspended") {
+                this.sound.context.resume();
+            }
             if (!this.menuMusic) return;
             if (this.sound.context.state !== "running") {
                 this.sound.context.resume().then(() => {

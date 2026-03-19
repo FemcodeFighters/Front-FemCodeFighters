@@ -22,6 +22,7 @@ function Bar({ value, max, color, label }) {
     const safeValue = value ?? 0;
     const safeMax = max || 100;
     const pct = Math.max(0, Math.min(100, (safeValue / safeMax) * 100));
+    const isDanger = pct <= 25;
     return (
         <div className={styles.barWrapper}>
             <div className={styles.barHeader}>
@@ -32,7 +33,7 @@ function Bar({ value, max, color, label }) {
             </div>
             <div className={styles.barBg}>
                 <div
-                    className={styles.barFill}
+                    className={`${styles.barFill} ${isDanger ? styles.barFillDanger : ""}`}
                     style={{ width: `${pct}%`, background: color }}
                 />
             </div>
@@ -74,6 +75,40 @@ function UltimateBar({ energy, max, ready }) {
     );
 }
 
+function EnemyUltimateBar({ energy, max, ready }) {
+    const pct = Math.max(0, Math.min(100, (energy / max) * 100));
+    return (
+        <div className={styles.ultimateWrapper}>
+            <div className={styles.ultimateHeader}>
+                <span
+                    className={
+                        ready
+                            ? styles.enemyUltimateLabelReady
+                            : styles.ultimateLabelIdle
+                    }
+                >
+                    ⚡ {ready ? "ULTIMATE READY" : "CHARGING"}
+                </span>
+                <span className={styles.ultimatePct}>{Math.round(pct)}%</span>
+            </div>
+            <div
+                className={
+                    ready ? styles.enemyUltimateBgReady : styles.ultimateBgIdle
+                }
+            >
+                <div
+                    className={
+                        ready
+                            ? styles.enemyUltimateFillReady
+                            : styles.ultimateFillIdle
+                    }
+                    style={{ width: `${pct}%` }}
+                />
+            </div>
+        </div>
+    );
+}
+
 function CooldownBar({ ready, label, color }) {
     return (
         <div className={styles.cooldownItem}>
@@ -96,7 +131,13 @@ function CooldownBar({ ready, label, color }) {
     );
 }
 
-function CombatHUD({ playerHp, enemyHp, playerCooldowns, ultimateState }) {
+function CombatHUD({
+    playerHp,
+    enemyHp,
+    playerCooldowns,
+    ultimateState,
+    enemyUltimate,
+}) {
     return (
         <div className={styles.hud}>
             <div className={styles.hudPlayer}>
@@ -124,13 +165,21 @@ function CombatHUD({ playerHp, enemyHp, playerCooldowns, ultimateState }) {
                     />
                 </div>
             </div>
-            <span className={styles.hudVs}>VS</span>
+            <div className={styles.hudVs}>
+                <span className={styles.hudVsText}>VS</span>
+                <div className={styles.hudVsLine} />
+            </div>
             <div className={styles.hudEnemy}>
                 <Bar
                     value={enemyHp.hp}
                     max={enemyHp.max}
                     color="#f7df1e"
                     label="STACK"
+                />
+                <EnemyUltimateBar
+                    energy={enemyUltimate.energy}
+                    max={enemyUltimate.max}
+                    ready={enemyUltimate.ready}
                 />
             </div>
         </div>
@@ -155,6 +204,11 @@ function App() {
         max: 100,
         ready: false,
     });
+    const [enemyUltimate, setEnemyUltimate] = useState({
+        energy: 0,
+        max: 100,
+        ready: false,
+    });
     const [isDamaged, setIsDamaged] = useState(false);
 
     const resetCombatStats = () => {
@@ -162,6 +216,7 @@ function App() {
         setEnemyHp({ hp: 100, max: 100 });
         setPlayerCooldowns({ attack: true, ranged: true });
         setUltimateState({ energy: 0, max: 100, ready: false });
+        setEnemyUltimate({ energy: 0, max: 100, ready: false });
         setIsDamaged(false);
         setCombatSessionId((prev) => prev + 1);
     };
@@ -194,34 +249,39 @@ function App() {
             setTimeout(() => setIsDamaged(false), 300);
         };
 
+        const handlePlayerHealth = ({ hp, maxHP }) =>
+            setPlayerHp({ hp, max: maxHP });
+        const handleEnemyHealth = ({ hp, maxHP }) =>
+            setEnemyHp({ hp, max: maxHP });
+        const handleCooldownAtk = (ready) =>
+            setPlayerCooldowns((p) => ({ ...p, attack: ready }));
+        const handleCooldownRng = (ready) =>
+            setPlayerCooldowns((p) => ({ ...p, ranged: ready }));
+        const handleUltimate = (data) => setUltimateState(data);
+        const handleEnemyUltimate = (data) => setEnemyUltimate(data);
+
         EventBus.on("combat-result", handleCombatResult);
         EventBus.on("player-damaged", handlePlayerDamaged);
         EventBus.on("request-ultimate", handleRequestUltimate);
-        EventBus.on("player-health", ({ hp, maxHP }) =>
-            setPlayerHp({ hp, max: maxHP }),
-        );
-        EventBus.on("enemy-health", ({ hp, maxHP }) =>
-            setEnemyHp({ hp, max: maxHP }),
-        );
-        EventBus.on("player-cooldown-attack", (ready) =>
-            setPlayerCooldowns((p) => ({ ...p, attack: ready })),
-        );
-        EventBus.on("player-cooldown-ranged", (ready) =>
-            setPlayerCooldowns((p) => ({ ...p, ranged: ready })),
-        );
-        EventBus.on("player-ultimate", (data) => setUltimateState(data));
+        EventBus.on("player-health", handlePlayerHealth);
+        EventBus.on("enemy-health", handleEnemyHealth);
+        EventBus.on("player-cooldown-attack", handleCooldownAtk);
+        EventBus.on("player-cooldown-ranged", handleCooldownRng);
+        EventBus.on("player-ultimate", handleUltimate);
+        EventBus.on("enemy-ultimate", handleEnemyUltimate);
 
         getRanking().then(setRanking);
 
         return () => {
-            EventBus.removeAllListeners("combat-result");
-            EventBus.removeAllListeners("player-damaged");
-            EventBus.removeAllListeners("request-ultimate");
-            EventBus.removeAllListeners("player-health");
-            EventBus.removeAllListeners("enemy-health");
-            EventBus.removeAllListeners("player-cooldown-attack");
-            EventBus.removeAllListeners("player-cooldown-ranged");
-            EventBus.removeAllListeners("player-ultimate");
+            EventBus.off("combat-result", handleCombatResult);
+            EventBus.off("player-damaged", handlePlayerDamaged);
+            EventBus.off("request-ultimate", handleRequestUltimate);
+            EventBus.off("player-health", handlePlayerHealth);
+            EventBus.off("enemy-health", handleEnemyHealth);
+            EventBus.off("player-cooldown-attack", handleCooldownAtk);
+            EventBus.off("player-cooldown-ranged", handleCooldownRng);
+            EventBus.off("player-ultimate", handleUltimate);
+            EventBus.off("enemy-ultimate", handleEnemyUltimate);
         };
     }, [combatSessionId]);
 
@@ -265,9 +325,10 @@ function App() {
                     onCloseCredits={() => setShowCredits(false)}
                     user={user}
                     onLogout={() => {
-                        logout();
-                        setScreen("mainmenu");
-                    }}
+                    logout();
+                    useCharacterStore.getState().clearCharacter();
+                    setScreen("mainmenu");
+                }}
                     onRanking={() => setScreen("ranking")}
                 />
             )}
@@ -318,6 +379,7 @@ function App() {
                         enemyHp={enemyHp}
                         playerCooldowns={playerCooldowns}
                         ultimateState={ultimateState}
+                        enemyUltimate={enemyUltimate}
                     />
                 </div>
             )}

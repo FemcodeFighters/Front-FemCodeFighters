@@ -14,10 +14,8 @@ const AIState = {
 
 export default class Enemy extends Character {
     #ultimateEnergy;
-
     constructor(scene, x, y, type = "JAVASCRIPT") {
         const textureKey = scene.textures.exists(type) ? type : "JAVASCRIPT";
-
         super(scene, x, y, textureKey, {
             maxHP: 80,
             speed: 150,
@@ -25,13 +23,10 @@ export default class Enemy extends Character {
             attackDamage: 5,
             attackRange: 55,
         });
-
         this.enemyType = type;
         this.projectileType = "bug";
-
         this.setOrigin(0.5, 1.0);
         this.setDisplaySize(110, 110);
-
         const eHitboxW = 50;
         const eHitboxH = 90;
         this.body.setSize(eHitboxW, eHitboxH);
@@ -40,15 +35,6 @@ export default class Enemy extends Character {
             this.height - eHitboxH,
         );
         this.body.setCollideWorldBounds(true);
-        const labelConfigs = {
-            HTML: { bg: "#E44D26", text: "#fff" },
-            CSS: { bg: "#264DE4", text: "#fff" },
-            JAVASCRIPT: { bg: "#f7df1e", text: "#000" },
-            REACT: { bg: "#61DAFB", text: "#000" },
-            JAVA: { bg: "#5382A1", text: "#fff" },
-            SPRINGBOOT: { bg: "#6DB33F", text: "#fff" },
-        };
-
         this.ultimateConfigs = {
             HTML: {
                 tint: [0xe44d26, 0xffffff],
@@ -81,30 +67,14 @@ export default class Enemy extends Character {
                 text: "BEAN CREATION FATAL",
             },
         };
-
-        const style = labelConfigs[type] || labelConfigs["JAVASCRIPT"];
-
-        this._labelText = scene.add
-            .text(x, y - 120, type, {
-                fontSize: "12px",
-                fontFamily: "monospace",
-                fontWeight: "bold",
-                color: style.text,
-                backgroundColor: style.bg,
-                padding: { x: 4, y: 2 },
-            })
-            .setOrigin(0.5)
-            .setDepth(10);
-
         this.#ultimateEnergy = mask(0);
-        this.ultimateMaxEnergy = 100;
+        this.ultimateMaxEnergy = 200;
         this.ultimateReady = false;
 
         const config =
             this.ultimateConfigs[type] || this.ultimateConfigs["JAVASCRIPT"];
         this._ultimateKey = config.text;
         this._ultimate = new Ultimate(scene, this, this._ultimateKey);
-
         const particleTexture = scene.textures.exists("bug") ? "bug" : null;
         this._dangerParticles = scene.add.particles(0, 0, particleTexture, {
             speed: { min: 60, max: 120 },
@@ -115,11 +85,10 @@ export default class Enemy extends Character {
             emitting: false,
         });
         this._dangerParticles.startFollow(this);
-
-        this._aiState = AIState.IDLE;
+        this._aiState = AIState.CHASE;
         this._target = null;
         this._thinkTimer = 0;
-        this._thinkInterval = 800;
+        this._thinkInterval = 400;
     }
 
     isAlive() {
@@ -128,10 +97,8 @@ export default class Enemy extends Character {
 
     takeDamage(amount, source) {
         if (!this.isAlive() || !this.visible) return;
-
         super.takeDamage(amount, source);
         this.emit("healthChanged");
-
         if (this.hp <= 0) {
             this.die();
         }
@@ -141,10 +108,7 @@ export default class Enemy extends Character {
         if (!this.active) return;
         this.emit("died");
         this._stopDangerParticles();
-
-        if (this._labelText) this._labelText.destroy();
         if (this.body) this.body.enable = false;
-
         this.scene.tweens.add({
             targets: this,
             alpha: 0,
@@ -155,42 +119,40 @@ export default class Enemy extends Character {
 
     update(delta, target) {
         if (!this.isAlive()) return;
-
         super.update(delta);
-
         if (!target || !target.active || target.hp <= 0) {
             this._stopDangerParticles();
             this.stopHorizontal();
             return;
         }
-
         this._target = target;
         this._thinkTimer += delta;
-
         if (this._thinkTimer >= this._thinkInterval) {
             this._thinkTimer = 0;
             this._think();
         }
-
         this._executeAI();
-
-        if (this._labelText) {
-            this._labelText.setPosition(this.x, this.y - 120);
-        }
     }
 
     onMeleeHit() {
         this._gainEnergy(20);
     }
+
     onRangedHit() {
         this._gainEnergy(35);
     }
 
     _gainEnergy(amount) {
         if (this.ultimateReady) return;
+        const scaled = Math.round(amount * 0.15);
         let current = Number(unmask(this.#ultimateEnergy)) || 0;
-        current = Math.min(this.ultimateMaxEnergy, current + amount);
+        current = Math.min(this.ultimateMaxEnergy, current + scaled);
         this.#ultimateEnergy = mask(current);
+        EventBus.emit("enemy-ultimate", {
+            energy: current,
+            max: this.ultimateMaxEnergy,
+            ready: current >= this.ultimateMaxEnergy,
+        });
 
         if (current >= this.ultimateMaxEnergy) {
             this.ultimateReady = true;
@@ -205,14 +167,15 @@ export default class Enemy extends Character {
             this._target.x,
             this._target.y,
         );
-        if (this.ultimateReady && dist < 200) {
+
+        if (this.ultimateReady && dist < 120 && !this._ultimateCooldown) {
             this._activateUltimate();
             return;
         }
 
-        if (dist < this.attackRange + 20) {
+        if (dist < this.attackRange + 10) {
             this._aiState = AIState.ATTACK;
-        } else if (dist > 150) {
+        } else if (dist < 220 && Math.random() < 0.3) {
             this._aiState = AIState.RANGED;
         } else {
             this._aiState = AIState.CHASE;
@@ -231,7 +194,7 @@ export default class Enemy extends Character {
                 this._attemptRanged();
                 break;
             default:
-                this.stopHorizontal();
+                this._chaseTarget();
         }
     }
 
@@ -270,16 +233,23 @@ export default class Enemy extends Character {
         if (!this.ultimateReady) return;
         this.ultimateReady = false;
         this.#ultimateEnergy = mask(0);
+        this._ultimateCooldown = true;
         this._stopDangerParticles();
 
-        EventBus.emit("enemy-ultimate-executed", { type: this.enemyType });
+        EventBus.emit("enemy-ultimate", {
+            energy: 0,
+            max: this.ultimateMaxEnergy,
+            ready: false,
+        });
 
+        this.scene.time.delayedCall(15000, () => {
+            if (this.active) this._ultimateCooldown = false;
+        });
+        EventBus.emit("enemy-ultimate-executed", { type: this.enemyType });
         if (this._ultimate && typeof this._ultimate.activate === "function") {
             this._ultimate.activate([this._target]);
         }
-
         this.scene.cameras.main.shake(500, 0.03);
-
         this.scene.time.delayedCall(600, () => {
             if (this.active) this._executeSystemCrash();
         });
@@ -340,7 +310,6 @@ export default class Enemy extends Character {
     }
 
     destroy(fromScene) {
-        if (this._labelText) this._labelText.destroy();
         if (this._dangerParticles) this._dangerParticles.destroy();
         super.destroy(fromScene);
     }

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { login as loginApi, register as registerApi } from "../service/authApi";
+import useCharacterStore from "./useCharacterStore";
 
 const useAuthStore = create((set) => ({
     token: localStorage.getItem("token") || null,
@@ -31,6 +32,8 @@ const useAuthStore = create((set) => ({
                 isAuthenticated: true,
                 isLoading: false,
             });
+            const { clearCharacter } = useCharacterStore.getState();
+            clearCharacter();
             return true;
         } catch (error) {
             set({
@@ -64,6 +67,8 @@ const useAuthStore = create((set) => ({
                 isAuthenticated: true,
                 isLoading: false,
             });
+            const { clearCharacter } = useCharacterStore.getState();
+            clearCharacter();
             return true;
         } catch (error) {
             set({
@@ -75,10 +80,12 @@ const useAuthStore = create((set) => ({
     },
 
     logout: () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        set({ token: null, user: null, isAuthenticated: false, error: null });
-    },
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    set({ token: null, user: null, isAuthenticated: false, error: null });
+    const { clearCharacter } = useCharacterStore.getState();
+    clearCharacter();
+},
 
     clearError: () => set({ error: null }),
 }));

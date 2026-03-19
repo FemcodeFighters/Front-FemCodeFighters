@@ -1,20 +1,16 @@
 function darken(hex, amount = 30) {
     if (!hex || typeof hex !== "string") return "#000000";
-
     try {
         let cleanHex = hex.replace("#", "");
-        if (cleanHex.length === 3) {
+        if (cleanHex.length === 3)
             cleanHex = cleanHex
                 .split("")
-                .map((char) => char + char)
+                .map((c) => c + c)
                 .join("");
-        }
-
         const n = parseInt(cleanHex, 16);
-        let r = Math.max(0, (n >> 16) - amount);
-        let g = Math.max(0, ((n >> 8) & 0xff) - amount);
-        let b = Math.max(0, (n & 0xff) - amount);
-
+        const r = Math.max(0, (n >> 16) - amount);
+        const g = Math.max(0, ((n >> 8) & 0xff) - amount);
+        const b = Math.max(0, (n & 0xff) - amount);
         return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
     } catch (e) {
         return "#000000";
@@ -23,21 +19,17 @@ function darken(hex, amount = 30) {
 
 function lighten(hex, amount = 30) {
     if (!hex || hex === "none" || typeof hex !== "string") return "#ffffff";
-
     try {
         let cleanHex = hex.replace("#", "");
-        if (cleanHex.length === 3) {
+        if (cleanHex.length === 3)
             cleanHex = cleanHex
                 .split("")
-                .map((char) => char + char)
+                .map((c) => c + c)
                 .join("");
-        }
-
         const n = parseInt(cleanHex, 16);
-        let r = Math.min(255, (n >> 16) + amount);
-        let g = Math.min(255, ((n >> 8) & 0xff) + amount);
-        let b = Math.min(255, (n & 0xff) + amount);
-
+        const r = Math.min(255, (n >> 16) + amount);
+        const g = Math.min(255, ((n >> 8) & 0xff) + amount);
+        const b = Math.min(255, (n & 0xff) + amount);
         return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
     } catch (e) {
         return "#ffffff";
@@ -52,27 +44,83 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
         eyeColor = "#2563eb",
         outfitColor = "#1e1b4b",
         accessory = "none",
+        outfit = "hoodie",
     } = character || {};
 
     const hd = darken(hairColor, 30);
     const ol = lighten(outfitColor, 30);
+    const ol2 = lighten(outfitColor, 15);
+    const od = darken(outfitColor, 20);
     const sd = darken(skinColor, 20);
     const ed = darken(eyeColor, 20);
 
     const wrap = (content) => `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-            <g transform="translate(24, -10)"> 
-                ${content} 
+            <g transform="translate(24, -10)">
+                ${content}
             </g>
         </svg>`;
 
-    const torso = (oy = 0) => `
+    const torsoHoodie = (oy = 0) => `
+        <path d="M28 ${58 + oy} Q22 ${54 + oy} 18 ${62 + oy} Q16 ${76 + oy} 20 ${84 + oy} Q24 ${80 + oy} 26 ${70 + oy} Q28 ${64 + oy} 32 ${62 + oy} Z" fill="${ol2}" opacity="0.9"/>
+        <path d="M52 ${58 + oy} Q58 ${54 + oy} 62 ${62 + oy} Q64 ${76 + oy} 60 ${84 + oy} Q56 ${80 + oy} 54 ${70 + oy} Q52 ${64 + oy} 48 ${62 + oy} Z" fill="${ol2}" opacity="0.9"/>
         <rect x="36" y="${54 + oy}" width="8" height="8" rx="2" fill="${skinColor}"/>
         <path d="M22 ${68 + oy} Q24 ${60 + oy} 40 ${59 + oy} Q56 ${60 + oy} 58 ${68 + oy} L60 ${108 + oy} Q40 ${114 + oy} 20 ${108 + oy} Z" fill="${outfitColor}"/>
         <path d="M30 ${68 + oy} Q40 ${66 + oy} 50 ${68 + oy} L51 ${100 + oy} Q40 ${104 + oy} 29 ${100 + oy} Z" fill="${ol}"/>
-        <line x1="40" y1="${66 + oy}" x2="40" y2="${102 + oy}" stroke="${outfitColor}" stroke-width="1.2"/>
-        <rect x="22" y="${98 + oy}" width="36" height="5" rx="2" fill="${darken(outfitColor, 10)}" opacity="0.8"/>
+        <path d="M30 ${88 + oy} Q40 ${86 + oy} 50 ${88 + oy} L50 ${100 + oy} Q40 ${103 + oy} 30 ${100 + oy} Z" fill="${ol2}"/>
+        <line x1="40" y1="${88 + oy}" x2="40" y2="${102 + oy}" stroke="${outfitColor}" stroke-width="1"/>
+        <line x1="40" y1="${66 + oy}" x2="40" y2="${86 + oy}" stroke="${outfitColor}" stroke-width="1.2"/>
+        <rect x="22" y="${104 + oy}" width="36" height="5" rx="2" fill="${darken(outfitColor, 10)}" opacity="0.8"/>
+        <line x1="37" y1="${63 + oy}" x2="34" y2="${70 + oy}" stroke="${hd}" stroke-width="1" opacity="0.6"/>
+        <line x1="43" y1="${63 + oy}" x2="46" y2="${70 + oy}" stroke="${hd}" stroke-width="1" opacity="0.6"/>
     `;
+
+    const torsoJacket = (oy = 0) => `
+        <rect x="36" y="${54 + oy}" width="8" height="8" rx="2" fill="${skinColor}"/>
+        <path d="M22 ${68 + oy} Q24 ${60 + oy} 40 ${59 + oy} Q56 ${60 + oy} 58 ${68 + oy} L60 ${108 + oy} Q40 ${114 + oy} 20 ${108 + oy} Z" fill="${outfitColor}"/>
+        <path d="M40 ${62 + oy} L28 ${72 + oy} L26 ${88 + oy} L32 ${88 + oy} L34 ${74 + oy} L40 ${68 + oy} Z" fill="${ol}"/>
+        <path d="M40 ${62 + oy} L52 ${72 + oy} L54 ${88 + oy} L48 ${88 + oy} L46 ${74 + oy} L40 ${68 + oy} Z" fill="${ol}"/>
+        <line x1="40" y1="${68 + oy}" x2="40" y2="${108 + oy}" stroke="${od}" stroke-width="1.5"/>
+        ${[0, 6, 12, 18, 24, 30].map((i) => `<rect x="38" y="${72 + oy + i}" width="2" height="2" fill="${ol2}" opacity="0.8"/><rect x="40" y="${72 + oy + i}" width="2" height="2" fill="${ol2}" opacity="0.8"/>`).join("")}
+        <rect x="38" y="${66 + oy}" width="4" height="5" rx="1" fill="${ol}"/>
+        <line x1="24" y1="${68 + oy}" x2="30" y2="${66 + oy}" stroke="${ol2}" stroke-width="1" opacity="0.7"/>
+        <line x1="56" y1="${68 + oy}" x2="50" y2="${66 + oy}" stroke="${ol2}" stroke-width="1" opacity="0.7"/>
+        <rect x="24" y="${90 + oy}" width="10" height="8" rx="2" fill="${ol2}" opacity="0.6"/>
+        <rect x="46" y="${90 + oy}" width="10" height="8" rx="2" fill="${ol2}" opacity="0.6"/>
+        <rect x="22" y="${104 + oy}" width="36" height="5" rx="2" fill="${darken(outfitColor, 10)}" opacity="0.8"/>
+    `;
+
+    const torsoArmor = (oy = 0) => `
+        <rect x="36" y="${54 + oy}" width="8" height="8" rx="2" fill="${skinColor}"/>
+        <path d="M22 ${68 + oy} Q24 ${60 + oy} 40 ${59 + oy} Q56 ${60 + oy} 58 ${68 + oy} L60 ${108 + oy} Q40 ${114 + oy} 20 ${108 + oy} Z" fill="${od}"/>
+        <path d="M24 ${66 + oy} Q28 ${62 + oy} 38 ${63 + oy} L38 ${84 + oy} Q28 ${86 + oy} 24 ${84 + oy} Z" fill="${outfitColor}"/>
+        <path d="M56 ${66 + oy} Q52 ${62 + oy} 42 ${63 + oy} L42 ${84 + oy} Q52 ${86 + oy} 56 ${84 + oy} Z" fill="${outfitColor}"/>
+        <rect x="38" y="${63 + oy}" width="4" height="46" fill="${od}"/>
+        <path d="M26 ${86 + oy} L54 ${86 + oy} L52 ${106 + oy} L28 ${106 + oy} Z" fill="${outfitColor}"/>
+        <line x1="26" y1="${92 + oy}" x2="54" y2="${92 + oy}" stroke="${od}" stroke-width="1.5"/>
+        <line x1="26" y1="${99 + oy}" x2="54" y2="${99 + oy}" stroke="${od}" stroke-width="1.5"/>
+        <path d="M16 ${64 + oy} Q20 ${58 + oy} 28 ${60 + oy} L26 ${72 + oy} Q18 ${74 + oy} 14 ${70 + oy} Z" fill="${outfitColor}"/>
+        <line x1="16" y1="${67 + oy}" x2="26" y2="${65 + oy}" stroke="${od}" stroke-width="1"/>
+        <path d="M64 ${64 + oy} Q60 ${58 + oy} 52 ${60 + oy} L54 ${72 + oy} Q62 ${74 + oy} 66 ${70 + oy} Z" fill="${outfitColor}"/>
+        <line x1="64" y1="${67 + oy}" x2="54" y2="${65 + oy}" stroke="${od}" stroke-width="1"/>
+        <line x1="26" y1="${70 + oy}" x2="36" y2="${70 + oy}" stroke="${ol}" stroke-width="0.8" opacity="0.7"/>
+        <line x1="30" y1="${70 + oy}" x2="30" y2="${76 + oy}" stroke="${ol}" stroke-width="0.8" opacity="0.7"/>
+        <circle cx="30" cy="${76 + oy}" r="1.2" fill="${ol}" opacity="0.9"/>
+        <line x1="26" y1="${78 + oy}" x2="36" y2="${78 + oy}" stroke="${ol}" stroke-width="0.8" opacity="0.5"/>
+        <line x1="54" y1="${70 + oy}" x2="44" y2="${70 + oy}" stroke="${ol}" stroke-width="0.8" opacity="0.7"/>
+        <line x1="50" y1="${70 + oy}" x2="50" y2="${76 + oy}" stroke="${ol}" stroke-width="0.8" opacity="0.7"/>
+        <circle cx="50" cy="${76 + oy}" r="1.2" fill="${ol}" opacity="0.9"/>
+        <line x1="54" y1="${78 + oy}" x2="44" y2="${78 + oy}" stroke="${ol}" stroke-width="0.8" opacity="0.5"/>
+        <ellipse cx="40" cy="${74 + oy}" rx="4" ry="4" fill="${ol}" opacity="0.3"/>
+        <ellipse cx="40" cy="${74 + oy}" rx="2" ry="2" fill="${ol}" opacity="0.8"/>
+        <rect x="22" y="${104 + oy}" width="36" height="5" rx="2" fill="${darken(outfitColor, 15)}" opacity="0.9"/>
+    `;
+
+    const torso = (oy = 0) => {
+        if (outfit === "jacket") return torsoJacket(oy);
+        if (outfit === "armor") return torsoArmor(oy);
+        return torsoHoodie(oy);
+    };
 
     const armL = (angle = 0, oy = 0) => {
         const rad = (angle * Math.PI) / 180;
@@ -81,8 +129,13 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
             len = 28;
         const ex = Math.round(ax + Math.sin(rad) * len - Math.cos(rad) * 8);
         const ey = Math.round(ay + Math.cos(rad) * len + Math.sin(rad) * 4);
+        const shoulderDetail =
+            outfit === "armor"
+                ? `<ellipse cx="${ax}" cy="${ay - 2}" rx="5" ry="3" fill="${outfitColor}" opacity="0.9"/>`
+                : "";
         return `
             <path d="M${ax} ${ay} Q${ax - 10 + Math.round(Math.sin(rad) * 8)} ${ay + 14} ${ex} ${ey} L${ex + 6} ${ey - 4} L${ax + 2} ${ay - 4} Z" fill="${outfitColor}"/>
+            ${shoulderDetail}
             <ellipse cx="${ex}" cy="${ey}" rx="6" ry="6" fill="${skinColor}"/>
             <path d="M${ex - 4} ${ey - 4} Q${ex} ${ey - 8} ${ex + 4} ${ey - 4} Q${ex + 2} ${ey + 2} ${ex} ${ey + 2} Q${ex - 2} ${ey + 2} ${ex - 4} ${ey - 4}Z" fill="${ol}" opacity="0.7"/>
         `;
@@ -95,8 +148,13 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
             len = 28;
         const ex = Math.round(ax + Math.sin(rad) * len + Math.cos(rad) * 8);
         const ey = Math.round(ay + Math.cos(rad) * len - Math.sin(rad) * 4);
+        const shoulderDetail =
+            outfit === "armor"
+                ? `<ellipse cx="${ax}" cy="${ay - 2}" rx="5" ry="3" fill="${outfitColor}" opacity="0.9"/>`
+                : "";
         return `
             <path d="M${ax} ${ay} Q${ax + 10 + Math.round(Math.sin(rad) * 8)} ${ay + 14} ${ex} ${ey} L${ex - 6} ${ey - 4} L${ax - 2} ${ay - 4} Z" fill="${outfitColor}"/>
+            ${shoulderDetail}
             <ellipse cx="${ex}" cy="${ey}" rx="6" ry="6" fill="${skinColor}"/>
             <path d="M${ex - 4} ${ey - 4} Q${ex} ${ey - 8} ${ex + 4} ${ey - 4} Q${ex + 2} ${ey + 2} ${ex} ${ey + 2} Q${ex - 2} ${ey + 2} ${ex - 4} ${ey - 4}Z" fill="${ol}" opacity="0.7"/>
         `;
@@ -114,12 +172,10 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
             expr === "hurt"
                 ? `<path d="M28 ${32 + oy} L38 ${36 + oy}" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
                 : `<path d="M26 ${29 + oy} Q32 ${26 + oy} 38 ${29 + oy}" stroke="#0a0a0a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
-
         const eyebrowR =
             expr === "hurt"
                 ? `<path d="M42 ${36 + oy} L52 ${32 + oy}" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
                 : `<path d="M42 ${29 + oy} Q48 ${26 + oy} 54 ${29 + oy}" stroke="#0a0a0a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
-
         const mouth =
             expr === "hurt"
                 ? `<path d="M34 ${48 + oy} Q40 ${45 + oy} 46 ${48 + oy}" stroke="${sd}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
@@ -287,14 +343,16 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
                 `<path d="M28 108 Q24 122 23 140 Q26 144 30 140 Q32 124 34 108 Z" fill="${outfitColor}"/><ellipse cx="25" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>
                   <path d="M52 108 Q56 122 57 140 Q54 144 50 140 Q48 124 46 108 Z" fill="${outfitColor}"/><ellipse cx="55" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>` +
                     torso(0) +
-                    `<path d="M22 69 Q18 78 20 94 L26 90 L26 72 Z" fill="${outfitColor}"/><ellipse cx="19" cy="96" rx="6" ry="6" fill="${skinColor}"/><path d="M58 69 Q62 78 60 94 L54 90 L54 72 Z" fill="${outfitColor}"/><ellipse cx="61" cy="96" rx="6" ry="6" fill="${skinColor}"/>` +
+                    `<path d="M22 69 Q18 78 20 94 L26 90 L26 72 Z" fill="${outfitColor}"/><ellipse cx="19" cy="96" rx="6" ry="6" fill="${skinColor}"/>
+                 <path d="M58 69 Q62 78 60 94 L54 90 L54 72 Z" fill="${outfitColor}"/><ellipse cx="61" cy="96" rx="6" ry="6" fill="${skinColor}"/>` +
                     headBase(0, "hurt"),
             ),
             wrap(
                 `<path d="M28 108 Q24 122 23 140 Q26 144 30 140 Q32 124 34 108 Z" fill="${outfitColor}"/><ellipse cx="25" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>
                   <path d="M52 108 Q56 122 57 140 Q54 144 50 140 Q48 124 46 108 Z" fill="${outfitColor}"/><ellipse cx="55" cy="142" rx="6" ry="3.5" fill="#0f0f1a"/>` +
                     torso(2) +
-                    `<path d="M22 71 Q14 80 16 96 L22 92 L26 74 Z" fill="${outfitColor}"/><ellipse cx="15" cy="98" rx="6" ry="6" fill="${skinColor}"/><path d="M58 71 Q66 80 64 96 L58 92 L54 74 Z" fill="${outfitColor}"/><ellipse cx="65" cy="98" rx="6" ry="6" fill="${skinColor}"/>` +
+                    `<path d="M22 71 Q14 80 16 96 L22 92 L26 74 Z" fill="${outfitColor}"/><ellipse cx="15" cy="98" rx="6" ry="6" fill="${skinColor}"/>
+                 <path d="M58 71 Q66 80 64 96 L58 92 L54 74 Z" fill="${outfitColor}"/><ellipse cx="65" cy="98" rx="6" ry="6" fill="${skinColor}"/>` +
                     headBase(2, "hurt"),
             ),
         ],

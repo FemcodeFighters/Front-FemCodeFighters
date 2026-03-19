@@ -1,3 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 @keyframes blink {
     0%,
     100% {
@@ -18,184 +33,16 @@
     }
 }
 
-.app {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.hud {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: auto;
-    z-index: 999;
-    pointer-events: none;
-    display: flex;
-    justify-content: center;
-}
-
-.hudPlayer {
-    width: 240px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.hudEnemy {
-    width: 240px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    align-items: flex-end;
-}
-
-.hudPlayer,
-.hudEnemy {
-    min-width: 300px;
-    pointer-events: auto;
-}
-
-.hudVs {
-    font-family: monospace;
-    font-size: 13px;
-    color: #444;
-    align-self: center;
-}
-
-.barWrapper {
-    width: 100%;
-}
-
-.barHeader {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2px;
-}
-
-.barLabel {
-    font-size: 11px;
-    font-family: monospace;
-    color: #aaa;
-}
-
-.barBg {
-    height: 10px;
-    background: #222;
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid #444;
-}
-
-.barFill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.15s ease;
-}
-
-.ultimateWrapper {
-    width: 100%;
-    margin-top: 4px;
-}
-
-.ultimateHeader {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2px;
-}
-
-.ultimateLabelReady {
-    font-size: 11px;
-    font-family: monospace;
-    color: #ff00ff;
-    animation: blink 0.6s ease-in-out infinite;
-}
-
-.ultimateLabelIdle {
-    font-size: 11px;
-    font-family: monospace;
-    color: #888;
-}
-
-.ultimatePct {
-    font-size: 11px;
-    font-family: monospace;
-    color: #888;
-}
-
-.ultimateBgReady {
-    height: 12px;
-    background: #1a0020;
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid #ff00ff;
-    box-shadow: 0 0 8px rgba(255, 0, 255, 0.53);
-    transition:
-        border-color 0.3s,
-        box-shadow 0.3s;
-}
-
-.ultimateBgIdle {
-    height: 12px;
-    background: #1a0020;
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid #440055;
-    transition:
-        border-color 0.3s,
-        box-shadow 0.3s;
-}
-
-.ultimateFillReady {
-    height: 100%;
-    background: linear-gradient(90deg, #cc00ff, #ff00ff);
-    border-radius: 4px;
-    transition: width 0.15s ease;
-    animation: pulse 0.6s ease-in-out infinite;
-}
-
-.ultimateFillIdle {
-    height: 100%;
-    background: linear-gradient(90deg, #660088, #9900cc);
-    border-radius: 4px;
-    transition: width 0.15s ease;
-}
-
-.cooldowns {
-    display: flex;
-    gap: 12px;
-    margin-top: 2px;
-}
-
-.cooldownItem {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.cooldownKey {
-    font-size: 10px;
-    font-family: monospace;
-    color: #666;
-    min-width: 14px;
-}
-
-.cooldownDot {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    transition: background 0.2s;
-}
-
-.cooldownText {
-    font-size: 10px;
-    font-family: monospace;
-}
-
-.shake {
-    animation: shakeHUD 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+@keyframes pulseDanger {
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 6px rgba(255, 40, 40, 0.6);
+    }
+    50% {
+        opacity: 0.7;
+        box-shadow: 0 0 18px rgba(255, 40, 40, 0.9);
+    }
 }
 
 @keyframes shakeHUD {
@@ -218,7 +65,323 @@
     }
 }
 
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+.app {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.hudContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.shake {
+    animation: shakeHUD 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 24px 0;
+    box-sizing: border-box;
+    background: linear-gradient(
+        to bottom,
+        rgba(2, 4, 8, 0.85) 0%,
+        rgba(2, 4, 8, 0) 100%
+    );
+}
+
+.hudPlayer {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.hudEnemy {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-end;
+}
+
+.hudVs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: center;
+    gap: 4px;
+    flex-shrink: 0;
+    padding: 0 12px;
+}
+
+.hudVsText {
+    font-family: "Orbitron", monospace;
+    font-size: 30px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 6px;
+    text-shadow:
+        0 0 10px rgba(0, 255, 200, 0.8),
+        0 0 20px rgba(0, 255, 200, 0.4),
+        0 0 40px rgba(0, 255, 200, 0.2);
+    animation: vsPulse 2s ease-in-out infinite;
+}
+
+.hudVsLine {
+    width: 100px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #00ffc8, transparent);
+    animation: vsLinePulse 2s ease-in-out infinite;
+}
+
+@keyframes vsPulse {
+    0%,
+    100% {
+        opacity: 1;
+        letter-spacing: 6px;
+    }
+    50% {
+        opacity: 0.7;
+        letter-spacing: 8px;
+    }
+}
+
+@keyframes vsLinePulse {
+    0%,
+    100% {
+        opacity: 0.4;
+        width: 60px;
+    }
+    50% {
+        opacity: 1;
+        width: 80px;
+    }
+}
+
+.barWrapper {
+    width: 100%;
+}
+
+.barHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+    align-items: center;
+}
+
+.barLabel {
+    font-size: 10px;
+    font-family: "Share Tech Mono", "Courier New", monospace;
+    color: rgba(0, 255, 200, 0.7);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.barBg {
+    height: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    position: relative;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    overflow: hidden;
+}
+
+.barBg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(0, 255, 200, 0.03) 0px,
+        rgba(0, 255, 200, 0.03) 1px,
+        transparent 1px,
+        transparent 20px
+    );
+    pointer-events: none;
+}
+
+.barFill {
+    height: 100%;
+    transition: width 0.15s ease;
+    position: relative;
+    clip-path: polygon(4px 0%, 100% 0%, calc(100% - 0px) 100%, 0% 100%);
+}
+
+.barFillDanger {
+    animation: pulseDanger 0.8s ease-in-out infinite;
+}
+
+.ultimateWrapper {
+    width: 100%;
+    margin-top: 2px;
+}
+
+.ultimateHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+    align-items: center;
+}
+
+.ultimateLabelReady {
+    font-size: 10px;
+    font-family: "Share Tech Mono", monospace;
+    color: #ff00ff;
+    letter-spacing: 2px;
+    animation: blink 0.6s ease-in-out infinite;
+}
+
+.ultimateLabelIdle {
+    font-size: 10px;
+    font-family: "Share Tech Mono", monospace;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 2px;
+}
+
+.ultimatePct {
+    font-size: 10px;
+    font-family: "Share Tech Mono", monospace;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.ultimateBgReady {
+    height: 10px;
+    background: rgba(20, 0, 30, 0.8);
+    border: 1px solid #ff00ff;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+}
+
+.ultimateBgIdle {
+    height: 10px;
+    background: rgba(20, 0, 30, 0.6);
+    border: 1px solid rgba(100, 0, 120, 0.5);
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    overflow: hidden;
+    position: relative;
+}
+
+.ultimateFillReady {
+    height: 100%;
+    background: linear-gradient(90deg, #cc00ff, #ff00ff);
+    clip-path: polygon(4px 0%, 100% 0%, 100% 100%, 0% 100%);
+    transition: width 0.15s ease;
+    animation: pulse 0.6s ease-in-out infinite;
+}
+
+.ultimateFillIdle {
+    height: 100%;
+    background: linear-gradient(90deg, #440066, #880099);
+    clip-path: polygon(4px 0%, 100% 0%, 100% 100%, 0% 100%);
+    transition: width 0.15s ease;
+}
+
+.cooldowns {
+    display: flex;
+    gap: 10px;
+    margin-top: 3px;
+}
+
+.cooldownItem {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 200, 0.12);
+    padding: 2px 7px 2px 5px;
+    clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+}
+
+.cooldownKey {
+    font-size: 10px;
+    font-family: "Share Tech Mono", monospace;
+    color: rgba(0, 255, 200, 0.5);
+    min-width: 12px;
+    letter-spacing: 1px;
+}
+
+.cooldownDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    transition:
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+.cooldownText {
+    font-size: 9px;
+    font-family: "Share Tech Mono", monospace;
+    letter-spacing: 1px;
+}
+
 .damaged {
     filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(5);
     transition: filter 0.1s;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#game-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.enemyUltimateLabelReady {
+    font-size: 10px;
+    font-family: "Share Tech Mono", monospace;
+    color: #ff4444;
+    letter-spacing: 2px;
+    animation: blink 0.6s ease-in-out infinite;
+}
+
+.enemyUltimateBgReady {
+    height: 10px;
+    background: rgba(30, 0, 0, 0.8);
+    border: 1px solid #ff4444;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    overflow: hidden;
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
+}
+
+.enemyUltimateFillReady {
+    height: 100%;
+    background: linear-gradient(90deg, #cc0000, #ff4444);
+    clip-path: polygon(4px 0%, 100% 0%, 100% 100%, 0% 100%);
+    transition: width 0.15s ease;
+    animation: pulse 0.6s ease-in-out infinite;
 }

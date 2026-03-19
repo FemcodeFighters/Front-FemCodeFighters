@@ -4,6 +4,7 @@ import CharacterPreview from "../../molecules/CharacterPreview";
 import ColorSwatch from "../../atoms/ColorSwatch";
 import OptionButton from "../../atoms/OptionButton";
 import useCharacterStore from "../../../store/useCharacterStore";
+import SaveToast from "../../atoms/SaveToast/SaveToast";
 
 const ULTIMATE_INFO = {
     FRIDAY_DEPLOY: {
@@ -88,6 +89,7 @@ export default function CharacterEditor({
     onEditAccount,
 }) {
     const [activeTab, setActiveTab] = useState("PIEL");
+    const [showToast, setShowToast] = useState(false);
 
     const {
         character,
@@ -110,14 +112,14 @@ export default function CharacterEditor({
     }, [activeTab, clearError]);
 
     const handleSave = async () => {
-    try {
-        await saveAll(); 
-        await fetchCharacter(); 
-        alert("Configuración neural guardada con éxito.");
-    } catch (err) {
-        console.error("Error crítico al guardar:", err);
-    }
-};
+        try {
+            await saveAll();
+            await fetchCharacter();
+            setShowToast(true);
+        } catch (err) {
+            console.error("Error crítico al guardar:", err);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -410,6 +412,7 @@ export default function CharacterEditor({
                     </button>
                 </div>
             </div>
+            <SaveToast visible={showToast} onHide={() => setShowToast(false)} />
         </div>
     );
 }

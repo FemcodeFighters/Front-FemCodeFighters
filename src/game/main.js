@@ -8,10 +8,16 @@ import Phaser from "phaser";
 
 const config = {
     type: Phaser.AUTO,
-    width: 1024,
-    height: 768,
+    width: window.innerWidth,
+    height: window.innerHeight,
     parent: "game-container",
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#020408",
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: "100%",
+        height: "100%",
+    },
     physics: {
         default: "arcade",
         arcade: {

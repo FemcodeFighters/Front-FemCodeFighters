@@ -21,10 +21,8 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
     #attackDamage;
     constructor(scene, x, y, texture, config) {
         super(scene, x, y, texture);
-
         scene.add.existing(this);
         scene.physics.add.existing(this);
-
         this.speed = config.speed ?? 200;
         this.jumpForce = config.jumpForce ?? -480;
         const baseDamage = config.attackDamage ?? 10;
@@ -34,7 +32,7 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
         this.rangedCooldown = config.rangedCooldown ?? 1000;
         this.#maxHP = mask(config.maxHP || 100);
         this.#currentHP = mask(config.maxHP || 100);
-        this.body.setGravityY(1000);
+        this.body.setGravityY(400);
         this.body.setCollideWorldBounds(true);
         this.body.setImmovable(false);
         this.body.setAllowGravity(true);
@@ -59,7 +57,6 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
         this.setDisplaySize(config.bodyW ?? 40, config.bodyH ?? 60);
         this.body.setSize(config.bodyW ?? 40, config.bodyH ?? 60);
         this.body.setOffset(0, 0);
-
         this._attackHitBox = scene.add.rectangle(
             0,
             0,
@@ -106,18 +103,83 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
         this._updateGroundState();
         this._updateHitBoxPosition();
         this._updateState();
-
         const animKey = this.state.toLowerCase();
         this._playAnimation(animKey);
 
         if (this.texture.frameTotal <= 1) {
-            if (this.state === CharacterState.RUN) {
-                this.setAngle(Math.sin(this.scene.time.now / 50) * 5);
-            } else if (this.state === CharacterState.JUMP) {
-                this.setScale(this.scaleX, 1.1);
-            } else {
-                this.setAngle(0);
-                this.setScale(this.scaleX, 1);
+            const t = this.scene.time.now;
+            const dir = this.facingRight ? 1 : -1;
+
+            switch (this.state) {
+                case CharacterState.IDLE:
+                    this.setAngle(0);
+                    this.setScale(
+                        this.originalScaleX * dir,
+                        this.originalScaleY * (1 + Math.sin(t / 400) * 0.02),
+                    );
+                    break;
+
+                case CharacterState.RUN:
+                    this.setAngle(Math.sin(t / 80) * 6 * dir);
+                    this.setScale(
+                        this.originalScaleX * dir,
+                        this.originalScaleY *
+                            (1 + Math.abs(Math.sin(t / 80)) * 0.05),
+                    );
+                    break;
+
+                case CharacterState.JUMP:
+                    this.setAngle(0);
+                    this.setScale(
+                        this.originalScaleX * dir * 0.85,
+                        this.originalScaleY * 1.18,
+                    );
+                    break;
+
+                case CharacterState.FALL:
+                    this.setAngle(0);
+                    this.setScale(
+                        this.originalScaleX * dir * 1.12,
+                        this.originalScaleY * 0.88,
+                    );
+                    break;
+
+                case CharacterState.ATTACK:
+                    //la animación la gestionan los tweens de attack()
+                    break;
+
+                case CharacterState.RANGED:
+                    this.setAngle(dir * -8);
+                    this.setScale(
+                        this.originalScaleX * dir * 0.95,
+                        this.originalScaleY * 1.05,
+                    );
+                    break;
+
+                case CharacterState.HURT:
+                    this.setAngle(Math.sin(t / 20) * 12);
+                    this.setScale(
+                        this.originalScaleX *
+                            dir *
+                            (1 + Math.sin(t / 20) * 0.05),
+                        this.originalScaleY,
+                    );
+                    break;
+
+                case CharacterState.DEAD:
+                    this.setAngle(dir * 90);
+                    this.setScale(
+                        this.originalScaleX * dir,
+                        this.originalScaleY,
+                    );
+                    break;
+
+                default:
+                    this.setAngle(0);
+                    this.setScale(
+                        this.originalScaleX * dir,
+                        this.originalScaleY,
+                    );
             }
         }
     }
@@ -155,10 +217,40 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
     attack() {
         if (this._isActionLocked()) return;
         if (!this.canAttack) return;
-
         this.setState(CharacterState.ATTACK);
         this.canAttack = false;
         this._showHitBoxFor(200);
+        const dir = this.facingRight ? 1 : -1;
+        this.scene.tweens.add({
+            targets: this,
+            scaleX: this.originalScaleX * dir * 0.8,
+            scaleY: this.originalScaleY * 1.2,
+            angle: dir * -10,
+            duration: 80,
+            ease: "Power2.in",
+            onComplete: () => {
+                this.scene.tweens.add({
+                    targets: this,
+                    scaleX: this.originalScaleX * dir * 1.25,
+                    scaleY: this.originalScaleY * 0.8,
+                    angle: dir * 20,
+                    x: this.x + dir * 18,
+                    duration: 100,
+                    ease: "Power3.out",
+                    onComplete: () => {
+                        this.scene.tweens.add({
+                            targets: this,
+                            scaleX: this.originalScaleX * dir,
+                            scaleY: this.originalScaleY,
+                            angle: 0,
+                            x: this.x - dir * 18,
+                            duration: 180,
+                            ease: "Power2.out",
+                        });
+                    },
+                });
+            },
+        });
 
         this.scene.time.delayedCall(this.attackCooldown, () => {
             this.canAttack = true;
@@ -376,16 +468,77 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
 
     _die() {
         this.setState(CharacterState.DEAD);
-        this.setVelocity(0, -300);
+        this.setVelocity(0, -200);
+        if (!this.scene.textures.exists("disintegrate_particle")) {
+            const g = this.scene.make.graphics({ x: 0, y: 0, add: false });
+            g.fillStyle(0xffffff, 1);
+            g.fillRect(0, 0, 6, 6);
+            g.generateTexture("disintegrate_particle", 6, 6);
+            g.destroy();
+        }
         this.scene.tweens.add({
             targets: this,
-            alpha: 0,
-            y: this.y + 40,
-            duration: 600,
+            y: this.y - 30,
+            duration: 200,
+            ease: "Power2.out",
             onComplete: () => {
-                this.emit("died", this);
-                this.destroy();
-                this._attackHitBox.destroy();
+                if (!this.scene) return;
+                const burst = this.scene.add
+                    .particles(this.x, this.y - 40, "disintegrate_particle", {
+                        speed: { min: 80, max: 320 },
+                        angle: { min: 0, max: 360 },
+                        scale: { start: 1.2, end: 0 },
+                        alpha: { start: 1, end: 0 },
+                        tint: [0x7c3aed, 0x00ffc8, 0xffffff, 0xb388ff],
+                        lifespan: { min: 400, max: 900 },
+                        quantity: 60,
+                        emitting: false,
+                        gravityY: 280,
+                    })
+                    .setDepth(500);
+                burst.explode(60);
+                const burst2 = this.scene.add
+                    .particles(this.x, this.y - 40, "disintegrate_particle", {
+                        speed: { min: 40, max: 160 },
+                        angle: { min: 220, max: 320 },
+                        scale: { start: 0.8, end: 0 },
+                        alpha: { start: 0.8, end: 0 },
+                        tint: [0x7c3aed, 0xffffff],
+                        lifespan: { min: 600, max: 1200 },
+                        quantity: 25,
+                        emitting: false,
+                        gravityY: -60,
+                    })
+                    .setDepth(500);
+                burst2.explode(25);
+                this.scene.tweens.add({
+                    targets: this,
+                    alpha: 0,
+                    scaleX: 0,
+                    scaleY: 1.6,
+                    duration: 350,
+                    ease: "Power3.in",
+                    onComplete: () => {
+                        if (this.scene) {
+                            this.scene.cameras.main.flash(
+                                200,
+                                124,
+                                58,
+                                237,
+                                false,
+                            );
+                            this.scene.cameras.main.shake(300, 0.008);
+                        }
+                        this.emit("died", this);
+                        if (this._attackHitBox) this._attackHitBox.destroy();
+                        this.scene?.time.delayedCall(1200, () => {
+                            burst.destroy();
+                            burst2.destroy();
+                        });
+
+                        this.destroy();
+                    },
+                });
             },
         });
     }
