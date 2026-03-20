@@ -1,6 +1,6 @@
 import React from 'react';
-import { ULTIMATE_INFO } from '../../constants/ultimateSkills';
-import useCharacterStore from '../../store/useCharacterStore';
+import { ULTIMATE_INFO } from '../../../constants/UltimateSkills';
+import useCharacterStore from "../../../store/useCharacterStore";
 import styles from './UltimateSelector.module.css';
 
 export default function UltimateSelector() {
