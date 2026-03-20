@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 const SVGS = {
-    duck: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    duck: `<svg viewBox="0 0 32 32">
         <ellipse cx="16" cy="20" rx="12" ry="9" fill="#f7df1e"/>
         <ellipse cx="14" cy="22" rx="7" ry="4" fill="#e6c800"/>
         <ellipse cx="22" cy="12" rx="8" ry="7" fill="#f7df1e"/>
@@ -12,7 +12,7 @@ const SVGS = {
         <path d="M4 18 Q0 14 2 20 Q0 24 4 22 Z" fill="#e6c800"/>
     </svg>`,
 
-    bug: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    bug: `<svg viewBox="0 0 32 32">
         <ellipse cx="16" cy="18" rx="8" ry="10" fill="#22c55e"/>
         <ellipse cx="16" cy="9" rx="6" ry="5" fill="#16a34a"/>
         <circle cx="13" cy="8" r="1.8" fill="#fff"/>
