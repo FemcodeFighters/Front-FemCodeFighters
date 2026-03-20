@@ -22,6 +22,9 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         const isAuthRoute = error.config?.url?.includes("/api/auth");
+        if (!error.response) {
+            return Promise.reject(new Error("BACKEND_UNAVAILABLE"));
+        }
 
         if (error.response?.status === 401 && !isAuthRoute) {
             localStorage.removeItem("token");

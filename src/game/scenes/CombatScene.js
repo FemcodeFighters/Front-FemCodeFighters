@@ -2,7 +2,7 @@ import { EventBus } from "../EventBus";
 import { Scene } from "phaser";
 import Player from "../characters/Player";
 import Enemy from "../characters/Enemy";
-import { getCharacter } from "../../service/playerApi";
+import { getCharacter, getUltimateConfig } from "../../service/playerApi";
 import { generateCharacterFrames } from "../../components/molecules/characterSVG";
 import { loadEnemyTextures } from "../../components/molecules/enemySVG";
 
@@ -40,8 +40,8 @@ export default class CombatScene extends Scene {
     async create() {
         const { width, height } = this.scale;
         if (this.input?.keyboard) {
-        this.input.keyboard.enabled = true;
-    }
+            this.input.keyboard.enabled = true;
+        }
         this.cameras.main.setBackgroundColor("#020408").fadeIn(500);
         this._createSceneTextures();
         this._createBackground(width, height);
@@ -127,20 +127,28 @@ export default class CombatScene extends Scene {
     }
 
     async _initEntities(width, height) {
-        try {
-            const serverData = await getCharacter();
-            this.registry.set("character", serverData);
-            await this._ensurePlayerTexture(serverData);
-            this.player = new Player(this, 200, height - 100);
-        } catch (error) {
-            console.error("Error cargando personaje:", error);
-            this.player = new Player(this, 200, height - 100);
-        }
-        this.physics.add.collider(this.player, this.platforms);
-        this.player.on("healthChanged", () => this._updateUI());
-        this.player.on("died", () => this._onCombatEnd("enemy"));
-        this.spawnNextEnemy();
+    try {
+        const [serverData, ultimateConfig] = await Promise.all([
+            getCharacter(),
+            getUltimateConfig(),
+        ]);
+        this.registry.set("character", serverData);
+        this.registry.set("ultimateConfig", ultimateConfig);
+        EventBus.emit("player-name", { name: serverData.username || "PLAYER" });
+        await this._ensurePlayerTexture(serverData);
+        this.player = new Player(this, 200, height - 90);
+    } catch (error) {
+        console.error("Error cargando personaje:", error);
+        EventBus.emit("combat-load-error", {
+            message: "No se puede conectar con el servidor. Inténtalo de nuevo.",
+        });
+        return;
     }
+    this.physics.add.collider(this.player, this.platforms);
+    this.player.on("healthChanged", () => this._updateUI());
+    this.player.on("died", () => this._onCombatEnd("enemy"));
+    this.spawnNextEnemy();
+}
 
     spawnNextEnemy() {
         const { width, height } = this.scale;
@@ -214,18 +222,19 @@ export default class CombatScene extends Scene {
     }
 
     _updateUI() {
-        if (!this.player) return;
-        EventBus.emit("player-health", {
-            hp: this.player.hp,
-            maxHP: this.player.maxHP,
+    if (!this.player) return;
+    EventBus.emit("player-health", {
+        hp: this.player.hp,
+        maxHP: this.player.maxHP,
+    });
+    if (this.enemy) {
+        EventBus.emit("enemy-health", {
+            hp: this.enemy.hp,
+            maxHP: this.enemy.maxHP,
+            type: this.enemy.enemyType,
         });
-        if (this.enemy) {
-            EventBus.emit("enemy-health", {
-                hp: this.enemy.hp,
-                maxHP: this.enemy.maxHP,
-            });
-        }
     }
+}
 
     _checkCombatCollisions() {
         if (
@@ -887,4 +896,3 @@ export default class CombatScene extends Scene {
         });
     }
 }
-

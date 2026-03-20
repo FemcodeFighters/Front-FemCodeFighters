@@ -100,32 +100,31 @@ html {
     top: 0;
     left: 0;
     width: 100%;
-    height: auto;
     pointer-events: none;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 12px 24px 0;
+    padding: 16px 28px 0;
     box-sizing: border-box;
     background: linear-gradient(
         to bottom,
-        rgba(2, 4, 8, 0.85) 0%,
+        rgba(2, 4, 8, 0.92) 0%,
         rgba(2, 4, 8, 0) 100%
     );
 }
 
 .hudPlayer {
-    width: 280px;
+    width: 340px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 }
 
 .hudEnemy {
-    width: 280px;
+    width: 340px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     align-items: flex-end;
 }
 
@@ -141,10 +140,10 @@ html {
 
 .hudVsText {
     font-family: "Orbitron", monospace;
-    font-size: 30px;
+    font-size: 36px;
     font-weight: 900;
     color: #ffffff;
-    letter-spacing: 6px;
+    letter-spacing: 8px;
     text-shadow:
         0 0 10px rgba(0, 255, 200, 0.8),
         0 0 20px rgba(0, 255, 200, 0.4),
@@ -187,27 +186,29 @@ html {
     width: 100%;
 }
 
+
 .barHeader {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 3px;
+    margin-bottom: 5px;
     align-items: center;
 }
 
 .barLabel {
-    font-size: 10px;
-    font-family: "Share Tech Mono", "Courier New", monospace;
-    color: rgba(0, 255, 200, 0.7);
-    letter-spacing: 2px;
+    font-size: 13px;
+    font-family: "Orbitron", monospace;
+    color: rgba(0, 255, 200, 0.9);
+    letter-spacing: 3px;
     text-transform: uppercase;
+    font-weight: 700;
 }
 
 .barBg {
-    height: 12px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(0, 255, 200, 0.25);
+    height: 18px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(0, 255, 200, 0.3);
     position: relative;
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
     overflow: hidden;
 }
 
@@ -229,7 +230,7 @@ html {
     height: 100%;
     transition: width 0.15s ease;
     position: relative;
-    clip-path: polygon(4px 0%, 100% 0%, calc(100% - 0px) 100%, 0% 100%);
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 0px) 100%, 0% 100%);
 }
 
 .barFillDanger {
@@ -238,54 +239,54 @@ html {
 
 .ultimateWrapper {
     width: 100%;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .ultimateHeader {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 3px;
+    margin-bottom: 5px;
     align-items: center;
 }
 
 .ultimateLabelReady {
-    font-size: 10px;
-    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
+    font-family: "Orbitron", monospace;
     color: #ff00ff;
     letter-spacing: 2px;
+    font-weight: 700;
     animation: blink 0.6s ease-in-out infinite;
 }
 
 .ultimateLabelIdle {
-    font-size: 10px;
-    font-family: "Share Tech Mono", monospace;
-    color: rgba(255, 255, 255, 0.25);
+    font-size: 12px;
+    font-family: "Orbitron", monospace;
+    color: rgba(255, 255, 255, 0.3);
     letter-spacing: 2px;
 }
 
 .ultimatePct {
-    font-size: 10px;
-    font-family: "Share Tech Mono", monospace;
-    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+    font-family: "Orbitron", monospace;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 700;
 }
 
 .ultimateBgReady {
-    height: 10px;
+    height: 14px;
     background: rgba(20, 0, 30, 0.8);
     border: 1px solid #ff00ff;
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
     overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+    box-shadow: 0 0 12px rgba(255, 0, 255, 0.5);
 }
 
 .ultimateBgIdle {
-    height: 10px;
+    height: 14px;
     background: rgba(20, 0, 30, 0.6);
     border: 1px solid rgba(100, 0, 120, 0.5);
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
     overflow: hidden;
-    position: relative;
 }
 
 .ultimateFillReady {
@@ -306,40 +307,40 @@ html {
 .cooldowns {
     display: flex;
     gap: 10px;
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
 .cooldownItem {
     display: flex;
     align-items: center;
-    gap: 5px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(0, 255, 200, 0.12);
-    padding: 2px 7px 2px 5px;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 255, 200, 0.15);
+    padding: 4px 10px 4px 7px;
     clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
 }
 
 .cooldownKey {
-    font-size: 10px;
-    font-family: "Share Tech Mono", monospace;
-    color: rgba(0, 255, 200, 0.5);
-    min-width: 12px;
+    font-size: 12px;
+    font-family: "Orbitron", monospace;
+    color: rgba(0, 255, 200, 0.6);
+    min-width: 14px;
     letter-spacing: 1px;
+    font-weight: 700;
 }
 
 .cooldownDot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 2px;
-    transition:
-        background 0.2s,
-        box-shadow 0.2s;
+    transition: background 0.2s, box-shadow 0.2s;
 }
 
 .cooldownText {
-    font-size: 9px;
-    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    font-family: "Orbitron", monospace;
     letter-spacing: 1px;
+    font-weight: 700;
 }
 
 .damaged {
@@ -362,20 +363,21 @@ html {
 }
 
 .enemyUltimateLabelReady {
-    font-size: 10px;
-    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
+    font-family: "Orbitron", monospace;
     color: #ff4444;
     letter-spacing: 2px;
+    font-weight: 700;
     animation: blink 0.6s ease-in-out infinite;
 }
 
 .enemyUltimateBgReady {
-    height: 10px;
+    height: 14px;
     background: rgba(30, 0, 0, 0.8);
     border: 1px solid #ff4444;
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
     overflow: hidden;
-    box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.5);
 }
 
 .enemyUltimateFillReady {
@@ -384,4 +386,42 @@ html {
     clip-path: polygon(4px 0%, 100% 0%, 100% 100%, 0% 100%);
     transition: width 0.15s ease;
     animation: pulse 0.6s ease-in-out infinite;
+}
+
+.combatError {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(2, 4, 8, 0.95);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    font-family: "Orbitron", monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    padding: 24px 40px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.serverError {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(2, 4, 8, 0.95);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    font-family: "Orbitron", monospace;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 16px 32px;
+    z-index: 9999;
+    pointer-events: none;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }

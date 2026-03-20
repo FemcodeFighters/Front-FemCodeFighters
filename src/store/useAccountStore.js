@@ -19,32 +19,35 @@ const useAccountStore = create((set) => ({
         try {
             const data = await getProfile();
             set({ profile: data, isLoading: false });
-        } catch {
-            set({ isLoading: false, error: "Error cargando perfil" });
+        } catch (e) {
+            set({
+                isLoading: false,
+                error: e.response?.data?.error || "Error cargando perfil",
+            });
         }
     },
 
     saveEmail: async (email) => {
-    set({ isSaving: true, error: null, success: null });
-    try {
-        const data = await updateEmail(email);
-        set({
-            profile: data,
-            isSaving: false,
-            success: "Email actualizado — vuelve a iniciar sesión",
-        });
-        setTimeout(() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            window.location.reload();
-        }, 2000);
-    } catch (e) {
-        set({
-            isSaving: false,
-            error: e.response?.data?.error || "Error actualizando email",
-        });
-    }
-},
+        set({ isSaving: true, error: null, success: null });
+        try {
+            const data = await updateEmail(email);
+            set({
+                profile: data,
+                isSaving: false,
+                success: "Email actualizado — vuelve a iniciar sesión",
+            });
+            setTimeout(() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.reload();
+            }, 2000);
+        } catch (e) {
+            set({
+                isSaving: false,
+                error: e.response?.data?.error || "Error actualizando email",
+            });
+        }
+    },
 
     saveUsername: async (username) => {
         set({ isSaving: true, error: null, success: null });

@@ -74,6 +74,12 @@
     color: #ff0055;
 }
 
+.redirectText{
+    font-family: "Share Tech Mono", monospace;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;

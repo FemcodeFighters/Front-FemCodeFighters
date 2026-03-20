@@ -13,6 +13,7 @@ import {
     useUltimateSkill,
     updateCombatStats,
     getRanking,
+    checkBackendHealth,
 } from "./service/playerApi";
 import RankingUI from "./components/pages/Ranking/RankingUI";
 import ControlsOverlay from "./components/pages/ControlsOverlay/ControlsOverlay";
@@ -137,6 +138,8 @@ function CombatHUD({
     playerCooldowns,
     ultimateState,
     enemyUltimate,
+    playerName,
+    enemyName,
 }) {
     return (
         <div className={styles.hud}>
@@ -145,7 +148,7 @@ function CombatHUD({
                     value={playerHp.hp}
                     max={playerHp.max}
                     color="#7c3aed"
-                    label="PROGRAMADORA"
+                    label={playerName}
                 />
                 <UltimateBar
                     energy={ultimateState.energy}
@@ -174,7 +177,7 @@ function CombatHUD({
                     value={enemyHp.hp}
                     max={enemyHp.max}
                     color="#f7df1e"
-                    label="STACK"
+                    label={enemyName}
                 />
                 <EnemyUltimateBar
                     energy={enemyUltimate.energy}
@@ -187,7 +190,11 @@ function CombatHUD({
 }
 
 function App() {
+    const [combatError, setCombatError] = useState(null);
+    const [serverError, setServerError] = useState(null);
     const phaserRef = useRef();
+    const [playerName, setPlayerName] = useState("PROGRAMADORA");
+    const [enemyName, setEnemyName] = useState("STACK");
     const [ranking, setRanking] = useState([]);
     const [screen, setScreen] = useState("");
     const [showCredits, setShowCredits] = useState(false);
@@ -210,6 +217,11 @@ function App() {
         ready: false,
     });
     const [isDamaged, setIsDamaged] = useState(false);
+    const handlePlayerName = ({ name }) => setPlayerName(name.toUpperCase());
+    const handleEnemyHealth = ({ hp, maxHP, type }) => {
+        setEnemyHp({ hp, max: maxHP });
+        if (type) setEnemyName(type);
+    };
 
     const resetCombatStats = () => {
         setPlayerHp({ hp: 100, max: 100 });
@@ -221,7 +233,34 @@ function App() {
         setCombatSessionId((prev) => prev + 1);
     };
 
+    const handlePlay = async () => {
+        setShowCredits(false);
+        try {
+            await checkBackendHealth();
+            setScreen(isAuthenticated ? "editor" : "auth");
+        } catch (e) {
+            if (e.message === "BACKEND_UNAVAILABLE") {
+                setServerError("No se puede conectar con el servidor");
+                setTimeout(() => setServerError(null), 3000);
+            } else {
+                setScreen(isAuthenticated ? "editor" : "auth");
+            }
+        }
+    };
+
     useEffect(() => {
+        const handleLoadError = ({ message }) => {
+            setCombatError(message);
+            setTimeout(() => {
+                setCombatError(null);
+                setScreen("mainmenu");
+                if (phaserRef.current) {
+                    const game = phaserRef.current.game;
+                    game.scene.stop("CombatScene");
+                    game.scene.start("MainMenu");
+                }
+            }, 3000);
+        };
         const handleCombatResult = async ({ winner }) => {
             try {
                 await updateCombatStats(winner === "player");
@@ -251,8 +290,6 @@ function App() {
 
         const handlePlayerHealth = ({ hp, maxHP }) =>
             setPlayerHp({ hp, max: maxHP });
-        const handleEnemyHealth = ({ hp, maxHP }) =>
-            setEnemyHp({ hp, max: maxHP });
         const handleCooldownAtk = (ready) =>
             setPlayerCooldowns((p) => ({ ...p, attack: ready }));
         const handleCooldownRng = (ready) =>
@@ -260,9 +297,11 @@ function App() {
         const handleUltimate = (data) => setUltimateState(data);
         const handleEnemyUltimate = (data) => setEnemyUltimate(data);
 
+        EventBus.on("combat-load-error", handleLoadError);
         EventBus.on("combat-result", handleCombatResult);
         EventBus.on("player-damaged", handlePlayerDamaged);
         EventBus.on("request-ultimate", handleRequestUltimate);
+        EventBus.on("player-name", handlePlayerName);
         EventBus.on("player-health", handlePlayerHealth);
         EventBus.on("enemy-health", handleEnemyHealth);
         EventBus.on("player-cooldown-attack", handleCooldownAtk);
@@ -273,9 +312,11 @@ function App() {
         getRanking().then(setRanking);
 
         return () => {
+            EventBus.off("combat-load-error", handleLoadError);
             EventBus.off("combat-result", handleCombatResult);
             EventBus.off("player-damaged", handlePlayerDamaged);
             EventBus.off("request-ultimate", handleRequestUltimate);
+            EventBus.off("player-name", handlePlayerName);
             EventBus.off("player-health", handlePlayerHealth);
             EventBus.off("enemy-health", handleEnemyHealth);
             EventBus.off("player-cooldown-attack", handleCooldownAtk);
@@ -315,22 +356,26 @@ function App() {
             <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
 
             {screen === "mainmenu" && (
-                <MainMenuUI
-                    onPlay={() => {
-                        setShowCredits(false);
-                        setScreen(isAuthenticated ? "editor" : "auth");
-                    }}
-                    onCredits={() => setShowCredits(true)}
-                    showCredits={showCredits}
-                    onCloseCredits={() => setShowCredits(false)}
-                    user={user}
-                    onLogout={() => {
-                    logout();
-                    useCharacterStore.getState().clearCharacter();
-                    setScreen("mainmenu");
-                }}
-                    onRanking={() => setScreen("ranking")}
-                />
+                <>
+                    {serverError && (
+                        <div className={styles.serverError}>
+                            ⚠ {serverError}
+                        </div>
+                    )}
+                    <MainMenuUI
+                        onPlay={handlePlay}
+                        onCredits={() => setShowCredits(true)}
+                        showCredits={showCredits}
+                        onCloseCredits={() => setShowCredits(false)}
+                        user={user}
+                        onLogout={() => {
+                            logout();
+                            useCharacterStore.getState().clearCharacter();
+                            setScreen("mainmenu");
+                        }}
+                        onRanking={() => setScreen("ranking")}
+                    />
+                </>
             )}
 
             {screen === "auth" && (
@@ -373,6 +418,11 @@ function App() {
                     key={`session-${combatSessionId}`}
                     className={`${styles.hudContainer} ${isDamaged ? styles.shake : ""}`}
                 >
+                    {combatError && (
+                        <div className={styles.combatError}>
+                            ⚠ {combatError}
+                        </div>
+                    )}
                     <CombatPopUp />
                     <CombatHUD
                         playerHp={playerHp}
@@ -380,6 +430,8 @@ function App() {
                         playerCooldowns={playerCooldowns}
                         ultimateState={ultimateState}
                         enemyUltimate={enemyUltimate}
+                        playerName={playerName}
+                        enemyName={enemyName}
                     />
                 </div>
             )}

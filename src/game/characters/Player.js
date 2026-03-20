@@ -154,6 +154,10 @@ export default class Player extends Character {
 
     _executeSpaghettiRain() {
         if (!this.scene || !this.active) return;
+        const config = this.scene.registry.get("ultimateConfig");
+        const tickDamage = config?.tickDamage ?? 5;
+        const tickCount = config?.tickCount ?? 12;
+        const tickIntervalMs = config?.tickIntervalMs ?? 400;
 
         const { width, height } = this.scene.scale;
 
@@ -295,14 +299,13 @@ export default class Player extends Character {
             });
 
             this.scene.time.addEvent({
-                delay: 400,
-                repeat: 12,
+                delay: tickIntervalMs,
+                repeat: tickCount,
                 callback: () => {
                     if (!this.scene || !this.active) return;
                     const enemy = this.scene.enemy;
                     if (!enemy || !enemy.active || !enemy.body) return;
-
-                    enemy.takeDamage(8, this);
+                    enemy.takeDamage(tickDamage, this);
                     this.scene.cameras.main.shake(80, 0.004);
 
                     if (enemy.active) enemy.setTint(0xf7df1e);
@@ -318,7 +321,7 @@ export default class Player extends Character {
                         .text(
                             enemy.x + Phaser.Math.Between(-30, 30),
                             enemy.y - 60,
-                            "-8 BUG",
+                            `-${tickDamage} BUG`,
                             {
                                 fontFamily: "Orbitron",
                                 fontSize: "16px",
@@ -341,7 +344,8 @@ export default class Player extends Character {
                 },
             });
 
-            this.scene.time.delayedCall(5000, () => {
+            const totalDuration = tickIntervalMs * tickCount + 500;
+            this.scene.time.delayedCall(totalDuration, () => {
                 if (!this.scene) return;
                 rain.destroy();
                 codeTimer.remove();
@@ -355,7 +359,8 @@ export default class Player extends Character {
 
     _executeGitClone() {
         if (!this.scene || !this.active) return;
-
+        const config = this.scene.registry.get("ultimateConfig");
+        const cloneDamage = config?.cloneDamage ?? 35;
         const dir = this.facingRight ? 1 : -1;
         const targetX = this.scene.enemy?.active
             ? this.scene.enemy.x
@@ -425,7 +430,7 @@ export default class Player extends Character {
                     trail.emitting = false;
 
                     if (this.scene.enemy?.active) {
-                        this.scene.enemy.takeDamage(35, this);
+                        this.scene.enemy.takeDamage(cloneDamage, this);
                     }
 
                     const boom = this.scene.add
@@ -491,11 +496,12 @@ export default class Player extends Character {
 
     _executeFridayDeploy() {
         if (!this.scene || !this.active) return;
-
+        const config = this.scene.registry.get("ultimateConfig");
+        const healAmount = config?.healAmount ?? 30;
+        const invincibilityMs = config?.invincibilityMs ?? 3000;
         const { width, height } = this.scene.scale;
         const CHARS = "01ABCDEFabcdef{}[]<>/=;:#@!~|$%*";
         const GREEN = "#00ff41";
-        const GREENDIM = "#00cc33";
 
         const lines = [
             "> git push origin main",
@@ -606,9 +612,7 @@ export default class Player extends Character {
 
         this.scene.time.delayedCall(600, () => {
             if (!this.scene || !this.active) return;
-
-            const healAmount = Math.min(this.maxHP - this.hp, 40);
-            this.hp = Math.min(this.maxHP, this.hp + 40);
+            this.hp = Math.min(this.maxHP, this.hp + healAmount);
 
             const healText = this.scene.add
                 .text(this.x, this.y - 80, `+${healAmount} HP`, {
@@ -642,7 +646,7 @@ export default class Player extends Character {
             });
 
             this.setTint(0x00ffc8);
-            this.isInvincible = true;
+            this.isInvincible = config?.grantsInvincibility ?? true;
 
             const blinkTimer = this.scene.time.addEvent({
                 delay: 200,
@@ -655,7 +659,7 @@ export default class Player extends Character {
                 },
             });
 
-            this.scene.time.delayedCall(3000, () => {
+            this.scene.time.delayedCall(invincibilityMs, () => {
                 if (!this.scene || !this.active) return;
 
                 blinkTimer.remove();

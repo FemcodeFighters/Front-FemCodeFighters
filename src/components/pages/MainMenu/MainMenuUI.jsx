@@ -62,7 +62,7 @@ export default function MainMenuUI({
     };
 
     return (
-        <div className={styles.root}>
+        <main className={styles.root}>
             <div className={styles.grid} />
             <div className={styles.scanlines} />
             <div
@@ -138,6 +138,6 @@ export default function MainMenuUI({
                     </button>
                 </div>
             )}
-        </div>
+        </main>
     );
 }
