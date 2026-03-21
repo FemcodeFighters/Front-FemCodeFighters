@@ -1,3 +1,222 @@
+# ⚔️ Code Fighters — Frontend
+
+> 🇪🇸 [Español](#español)
+
+---
+
+## Español
+
+### 📖 Descripción
+
+**Code Fighters** es un videojuego de peleas de plataformas temático del mundo del desarrollo de software. Los jugadores crean su personaje programadora, personalizan su apariencia y se enfrentan contra Stacks usando habilidades definitivas inspiradas en el día a día del desarrollo: `FRIDAY DEPLOY`, `SPAGHETTI CODE STORM` y `GIT CLONE REPOSITORY`.
+
+Este proyecto es el backend de la aplicación, construido con **Spring Boot** y expuesto mediante una **API REST** que consume el frontend desarrollado en **Phaser.js**
+
+
+### 🛠️ Tecnologías
+
+| Tecnología | Uso |
+|---|---|
+| Phaser | Motor del juego |
+| React | Framework frontend |
+| Zustand | Autenticación y autorización |
+| Vitest | Testing Unitario |
+| Playwright | Testing E2E |
+
+---
+
+### ⚙️ Instalación y ejecución
+
+#### Requisitos previos
+- VSCode
+- Node.js
+- React
+- Phaser
+- Zustand
+- Vite
+- Vitest
+- jsdom
+- Playwright
+
+#### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/FemcodeFighters/Front-FemCodeFighters.git
+```
+#### 2. Estructura del proyecto
+📦src
+ ┣ 📂components
+ ┃ ┣ 📂atoms
+ ┃ ┃ ┣ 📂SaveToast
+ ┃ ┃ ┃ ┣ 📜SaveToast.jsx
+ ┃ ┃ ┃ ┗ 📜SaveToast.module.css
+ ┃ ┃ ┣ 📜AuthError.jsx
+ ┃ ┃ ┣ 📜AuthField.jsx
+ ┃ ┃ ┣ 📜AuthToggle.jsx
+ ┃ ┃ ┣ 📜ColorSwatch.jsx
+ ┃ ┃ ┗ 📜OptionButton.jsx
+ ┃ ┣ 📂molecules
+ ┃ ┃ ┣ 📂CombatPopUp
+ ┃ ┃ ┃ ┣ 📜CombatPopUp.jsx
+ ┃ ┃ ┃ ┗ 📜CombatPopUp.module.css
+ ┃ ┃ ┣ 📂UltimateSelector
+ ┃ ┃ ┃ ┣ 📜UltimateSelector.jsx
+ ┃ ┃ ┃ ┗ 📜UltimateSelector.module.css
+ ┃ ┃ ┣ 📜AuthForm.jsx
+ ┃ ┃ ┣ 📜CharacterPreview.jsx
+ ┃ ┃ ┣ 📜characterSVG.js
+ ┃ ┃ ┗ 📜enemySVG.js
+ ┃ ┣ 📂organisms
+ ┃ ┃ ┣ 📂AccountEditor
+ ┃ ┃ ┃ ┣ 📜AccountEditor.jsx
+ ┃ ┃ ┃ ┗ 📜AccountEditor.module.css
+ ┃ ┃ ┣ 📂Auth
+ ┃ ┃ ┃ ┣ 📜AuthUI.jsx
+ ┃ ┃ ┃ ┗ 📜AuthUI.module.css
+ ┃ ┃ ┗ 📂CharacterEditor
+ ┃ ┃ ┃ ┣ 📜CharacterEditor.jsx
+ ┃ ┃ ┃ ┗ 📜CharacterEditor.module.css
+ ┃ ┗ 📂pages
+ ┃ ┃ ┣ 📂ControlsOverlay
+ ┃ ┃ ┃ ┣ 📜ControlsOverlay.jsx
+ ┃ ┃ ┃ ┗ 📜ControlsOverlay.module.css
+ ┃ ┃ ┣ 📂GameMode
+ ┃ ┃ ┃ ┣ 📜GameModeSelect.jsx
+ ┃ ┃ ┃ ┗ 📜GameModeSelect.module.css
+ ┃ ┃ ┣ 📂MainMenu
+ ┃ ┃ ┃ ┣ 📜MainMenuUI.jsx
+ ┃ ┃ ┃ ┗ 📜MainMenuUI.module.css
+ ┃ ┃ ┗ 📂Ranking
+ ┃ ┃ ┃ ┣ 📜RankingUI.jsx
+ ┃ ┃ ┃ ┗ 📜RankingUI.module.css
+ ┣ 📂constants
+ ┃ ┗ 📜UltimateSkills.js
+ ┣ 📂game
+ ┃ ┣ 📂characters
+ ┃ ┃ ┣ 📂effects
+ ┃ ┃ ┃ ┣ 📜ImpactEffect.js
+ ┃ ┃ ┃ ┗ 📜SoundManager.js
+ ┃ ┃ ┣ 📜Character.js
+ ┃ ┃ ┣ 📜Enemy.js
+ ┃ ┃ ┣ 📜Player.js
+ ┃ ┃ ┣ 📜Projectile.js
+ ┃ ┃ ┗ 📜Ultimate.js
+ ┃ ┣ 📂scenes
+ ┃ ┃ ┣ 📜Boot.js
+ ┃ ┃ ┣ 📜CombatScene.js
+ ┃ ┃ ┣ 📜GameOver.js
+ ┃ ┃ ┣ 📜MainMenu.js
+ ┃ ┃ ┣ 📜Preloader.js
+ ┃ ┃ ┗ 📜RankingScene.js
+ ┃ ┣ 📂utils
+ ┃ ┃ ┗ 📜Security.js
+ ┃ ┣ 📜EventBus.js
+ ┃ ┗ 📜main.js
+ ┣ 📂service
+ ┃ ┣ 📜api.js
+ ┃ ┣ 📜authApi.js
+ ┃ ┣ 📜playerApi.js
+ ┃ ┗ 📜userApi.js
+ ┣ 📂store
+ ┃ ┣ 📜useAccountStore.js
+ ┃ ┣ 📜useAuthStore.js
+ ┃ ┣ 📜useCharacterStore.js
+ ┃ ┗ 📜useCombatStore.js
+ ┣ 📂test
+ ┃ ┣ 📂mocks
+ ┃ ┃ ┗ 📜PhaserMock.js
+ ┃ ┣ 📜AccountEditor.test.jsx
+ ┃ ┣ 📜api.test.js
+ ┃ ┣ 📜App.test.jsx
+ ┃ ┣ 📜authApi.test.js
+ ┃ ┣ 📜AuthError.test.jsx
+ ┃ ┣ 📜AuthField.test.jsx
+ ┃ ┣ 📜AuthForm.test.jsx
+ ┃ ┣ 📜AuthToggle.test.jsx
+ ┃ ┣ 📜AuthUI.test.jsx
+ ┃ ┣ 📜Character.test.js
+ ┃ ┣ 📜CharacterEditor.test.jsx
+ ┃ ┣ 📜CharacterPreview.test.jsx
+ ┃ ┣ 📜characterSVG.test.js
+ ┃ ┣ 📜ColorSwatch.test.jsx
+ ┃ ┣ 📜CombatPopUp.test.jsx
+ ┃ ┣ 📜CombatScene.test.js
+ ┃ ┣ 📜ControlsOverlay.test.jsx
+ ┃ ┣ 📜Enemy.test.js
+ ┃ ┣ 📜EnemySVG.test.js
+ ┃ ┣ 📜example.test.js
+ ┃ ┣ 📜GameModeSelect.test.jsx
+ ┃ ┣ 📜GameOver.test.js
+ ┃ ┣ 📜main.test.js
+ ┃ ┣ 📜MainMenu.test.js
+ ┃ ┣ 📜MainMenuUI.test.jsx
+ ┃ ┣ 📜OptionButton.test.jsx
+ ┃ ┣ 📜Player.test.js
+ ┃ ┣ 📜playerApi.test.js
+ ┃ ┣ 📜Preloader.test.js
+ ┃ ┣ 📜Projectile.test.js
+ ┃ ┣ 📜RankingScene.test.js
+ ┃ ┣ 📜RankingUI.test.jsx
+ ┃ ┣ 📜SaveToast.test.jsx
+ ┃ ┣ 📜Security.test.js
+ ┃ ┣ 📜setup.js
+ ┃ ┣ 📜Ultimate.test.js
+ ┃ ┣ 📜UltimateSelector.test.jsx
+ ┃ ┣ 📜useAccountStore.test.js
+ ┃ ┣ 📜useAuthStore.test.js
+ ┃ ┣ 📜useCharacterStore.test.js
+ ┃ ┣ 📜useCombatStore.test.js
+ ┃ ┗ 📜userApi.test.js
+ ┣ 📂tests
+ ┃ ┣ 📂e2e
+ ┃ ┃ ┗ 📜combat.spec.js
+ ┃ ┗ 📜example.spec.js
+ ┣ 📜App.jsx
+ ┣ 📜App.module.css
+ ┣ 📜main.jsx
+ ┗ 📜PhaserGame.jsx
+
+
+![Pantalla de inicio](public/Screen.jpg)
+
+#### 5. Ejecutar la aplicación
+```bash
+npm run dev
+```
+
+La API estará disponible en `http://localhost:5173`.
+
+#### ⚔️ Habilidades definitivas
+
+| Habilidad | Efecto |
+|---|---|
+| `FRIDAY_DEPLOY` | Cura al jugador +30 HP (máx. 100) |
+| `SPAGHETTI_CODE` | Inflige 5 de daño a todos los enemigos |
+| `GIT_CLONE` | Invoca un clon que ataca por ti |
+
+> Todas las habilidades tienen un cooldown de **20 segundos**.
+
+---
+
+### 🧪 Testing
+
+El proyecto incluye tests unitarios, de integración y E2E.
+
+#### Ejecutar todos los tests
+
+```bash
+npm run test:all
+```
+
+
+### 👩‍💻 Autora
+
+**Jennifer Cros** — Proyecto individual desarrollado durante el bootcamp de **FemCoders**.
+
+**Enlace al Backend** https://github.com/FemcodeFighters/Back-FemCodeFighters.git
+
+----------------------------------------------------------------------------------------------
+
 # Phaser React Template
 
 This is a Phaser 3 project template that uses the React framework and Vite for bundling. It includes a bridge for React to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
@@ -12,7 +231,7 @@ This template has been updated for:
 - [React 19.0.0](https://github.com/facebook/react)
 - [Vite 6.3.1](https://github.com/vitejs/vite)
 
-![screenshot](screenshot.png)
+
 
 ## Requirements
 
@@ -241,3 +460,4 @@ Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, 
 The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
 
 All rights reserved.
+
