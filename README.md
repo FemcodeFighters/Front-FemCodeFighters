@@ -12,22 +12,22 @@
 
 Este proyecto es el backend de la aplicación, construido con **Spring Boot** y expuesto mediante una **API REST** que consume el frontend desarrollado en **Phaser.js**
 
-
 ### 🛠️ Tecnologías
 
-| Tecnología | Uso |
-|---|---|
-| Phaser | Motor del juego |
-| React | Framework frontend |
-| Zustand | Autenticación y autorización |
-| Vitest | Testing Unitario |
-| Playwright | Testing E2E |
+| Tecnología | Uso                          |
+| ---------- | ---------------------------- |
+| Phaser     | Motor del juego              |
+| React      | Framework frontend           |
+| Zustand    | Autenticación y autorización |
+| Vitest     | Testing Unitario             |
+| Playwright | Testing E2E                  |
 
 ---
 
 ### ⚙️ Instalación y ejecución
 
 #### Requisitos previos
+
 - VSCode
 - Node.js
 - React
@@ -43,143 +43,145 @@ Este proyecto es el backend de la aplicación, construido con **Spring Boot** y 
 ```bash
 git clone https://github.com/FemcodeFighters/Front-FemCodeFighters.git
 ```
-#### 2. Estructura del proyecto
-📦src
- ┣ 📂components
- ┃ ┣ 📂atoms
- ┃ ┃ ┣ 📂SaveToast
- ┃ ┃ ┃ ┣ 📜SaveToast.jsx
- ┃ ┃ ┃ ┗ 📜SaveToast.module.css
- ┃ ┃ ┣ 📜AuthError.jsx
- ┃ ┃ ┣ 📜AuthField.jsx
- ┃ ┃ ┣ 📜AuthToggle.jsx
- ┃ ┃ ┣ 📜ColorSwatch.jsx
- ┃ ┃ ┗ 📜OptionButton.jsx
- ┃ ┣ 📂molecules
- ┃ ┃ ┣ 📂CombatPopUp
- ┃ ┃ ┃ ┣ 📜CombatPopUp.jsx
- ┃ ┃ ┃ ┗ 📜CombatPopUp.module.css
- ┃ ┃ ┣ 📂UltimateSelector
- ┃ ┃ ┃ ┣ 📜UltimateSelector.jsx
- ┃ ┃ ┃ ┗ 📜UltimateSelector.module.css
- ┃ ┃ ┣ 📜AuthForm.jsx
- ┃ ┃ ┣ 📜CharacterPreview.jsx
- ┃ ┃ ┣ 📜characterSVG.js
- ┃ ┃ ┗ 📜enemySVG.js
- ┃ ┣ 📂organisms
- ┃ ┃ ┣ 📂AccountEditor
- ┃ ┃ ┃ ┣ 📜AccountEditor.jsx
- ┃ ┃ ┃ ┗ 📜AccountEditor.module.css
- ┃ ┃ ┣ 📂Auth
- ┃ ┃ ┃ ┣ 📜AuthUI.jsx
- ┃ ┃ ┃ ┗ 📜AuthUI.module.css
- ┃ ┃ ┗ 📂CharacterEditor
- ┃ ┃ ┃ ┣ 📜CharacterEditor.jsx
- ┃ ┃ ┃ ┗ 📜CharacterEditor.module.css
- ┃ ┗ 📂pages
- ┃ ┃ ┣ 📂ControlsOverlay
- ┃ ┃ ┃ ┣ 📜ControlsOverlay.jsx
- ┃ ┃ ┃ ┗ 📜ControlsOverlay.module.css
- ┃ ┃ ┣ 📂GameMode
- ┃ ┃ ┃ ┣ 📜GameModeSelect.jsx
- ┃ ┃ ┃ ┗ 📜GameModeSelect.module.css
- ┃ ┃ ┣ 📂MainMenu
- ┃ ┃ ┃ ┣ 📜MainMenuUI.jsx
- ┃ ┃ ┃ ┗ 📜MainMenuUI.module.css
- ┃ ┃ ┗ 📂Ranking
- ┃ ┃ ┃ ┣ 📜RankingUI.jsx
- ┃ ┃ ┃ ┗ 📜RankingUI.module.css
- ┣ 📂constants
- ┃ ┗ 📜UltimateSkills.js
- ┣ 📂game
- ┃ ┣ 📂characters
- ┃ ┃ ┣ 📂effects
- ┃ ┃ ┃ ┣ 📜ImpactEffect.js
- ┃ ┃ ┃ ┗ 📜SoundManager.js
- ┃ ┃ ┣ 📜Character.js
- ┃ ┃ ┣ 📜Enemy.js
- ┃ ┃ ┣ 📜Player.js
- ┃ ┃ ┣ 📜Projectile.js
- ┃ ┃ ┗ 📜Ultimate.js
- ┃ ┣ 📂scenes
- ┃ ┃ ┣ 📜Boot.js
- ┃ ┃ ┣ 📜CombatScene.js
- ┃ ┃ ┣ 📜GameOver.js
- ┃ ┃ ┣ 📜MainMenu.js
- ┃ ┃ ┣ 📜Preloader.js
- ┃ ┃ ┗ 📜RankingScene.js
- ┃ ┣ 📂utils
- ┃ ┃ ┗ 📜Security.js
- ┃ ┣ 📜EventBus.js
- ┃ ┗ 📜main.js
- ┣ 📂service
- ┃ ┣ 📜api.js
- ┃ ┣ 📜authApi.js
- ┃ ┣ 📜playerApi.js
- ┃ ┗ 📜userApi.js
- ┣ 📂store
- ┃ ┣ 📜useAccountStore.js
- ┃ ┣ 📜useAuthStore.js
- ┃ ┣ 📜useCharacterStore.js
- ┃ ┗ 📜useCombatStore.js
- ┣ 📂test
- ┃ ┣ 📂mocks
- ┃ ┃ ┗ 📜PhaserMock.js
- ┃ ┣ 📜AccountEditor.test.jsx
- ┃ ┣ 📜api.test.js
- ┃ ┣ 📜App.test.jsx
- ┃ ┣ 📜authApi.test.js
- ┃ ┣ 📜AuthError.test.jsx
- ┃ ┣ 📜AuthField.test.jsx
- ┃ ┣ 📜AuthForm.test.jsx
- ┃ ┣ 📜AuthToggle.test.jsx
- ┃ ┣ 📜AuthUI.test.jsx
- ┃ ┣ 📜Character.test.js
- ┃ ┣ 📜CharacterEditor.test.jsx
- ┃ ┣ 📜CharacterPreview.test.jsx
- ┃ ┣ 📜characterSVG.test.js
- ┃ ┣ 📜ColorSwatch.test.jsx
- ┃ ┣ 📜CombatPopUp.test.jsx
- ┃ ┣ 📜CombatScene.test.js
- ┃ ┣ 📜ControlsOverlay.test.jsx
- ┃ ┣ 📜Enemy.test.js
- ┃ ┣ 📜EnemySVG.test.js
- ┃ ┣ 📜example.test.js
- ┃ ┣ 📜GameModeSelect.test.jsx
- ┃ ┣ 📜GameOver.test.js
- ┃ ┣ 📜main.test.js
- ┃ ┣ 📜MainMenu.test.js
- ┃ ┣ 📜MainMenuUI.test.jsx
- ┃ ┣ 📜OptionButton.test.jsx
- ┃ ┣ 📜Player.test.js
- ┃ ┣ 📜playerApi.test.js
- ┃ ┣ 📜Preloader.test.js
- ┃ ┣ 📜Projectile.test.js
- ┃ ┣ 📜RankingScene.test.js
- ┃ ┣ 📜RankingUI.test.jsx
- ┃ ┣ 📜SaveToast.test.jsx
- ┃ ┣ 📜Security.test.js
- ┃ ┣ 📜setup.js
- ┃ ┣ 📜Ultimate.test.js
- ┃ ┣ 📜UltimateSelector.test.jsx
- ┃ ┣ 📜useAccountStore.test.js
- ┃ ┣ 📜useAuthStore.test.js
- ┃ ┣ 📜useCharacterStore.test.js
- ┃ ┣ 📜useCombatStore.test.js
- ┃ ┗ 📜userApi.test.js
- ┣ 📂tests
- ┃ ┣ 📂e2e
- ┃ ┃ ┗ 📜combat.spec.js
- ┃ ┗ 📜example.spec.js
- ┣ 📜App.jsx
- ┣ 📜App.module.css
- ┣ 📜main.jsx
- ┗ 📜PhaserGame.jsx
 
+#### 2. Estructura del proyecto
+
+📦src
+┣ 📂components
+┃ ┣ 📂atoms
+┃ ┃ ┣ 📂SaveToast
+┃ ┃ ┃ ┣ 📜SaveToast.jsx
+┃ ┃ ┃ ┗ 📜SaveToast.module.css
+┃ ┃ ┣ 📜AuthError.jsx
+┃ ┃ ┣ 📜AuthField.jsx
+┃ ┃ ┣ 📜AuthToggle.jsx
+┃ ┃ ┣ 📜ColorSwatch.jsx
+┃ ┃ ┗ 📜OptionButton.jsx
+┃ ┣ 📂molecules
+┃ ┃ ┣ 📂CombatPopUp
+┃ ┃ ┃ ┣ 📜CombatPopUp.jsx
+┃ ┃ ┃ ┗ 📜CombatPopUp.module.css
+┃ ┃ ┣ 📂UltimateSelector
+┃ ┃ ┃ ┣ 📜UltimateSelector.jsx
+┃ ┃ ┃ ┗ 📜UltimateSelector.module.css
+┃ ┃ ┣ 📜AuthForm.jsx
+┃ ┃ ┣ 📜CharacterPreview.jsx
+┃ ┃ ┣ 📜characterSVG.js
+┃ ┃ ┗ 📜enemySVG.js
+┃ ┣ 📂organisms
+┃ ┃ ┣ 📂AccountEditor
+┃ ┃ ┃ ┣ 📜AccountEditor.jsx
+┃ ┃ ┃ ┗ 📜AccountEditor.module.css
+┃ ┃ ┣ 📂Auth
+┃ ┃ ┃ ┣ 📜AuthUI.jsx
+┃ ┃ ┃ ┗ 📜AuthUI.module.css
+┃ ┃ ┗ 📂CharacterEditor
+┃ ┃ ┃ ┣ 📜CharacterEditor.jsx
+┃ ┃ ┃ ┗ 📜CharacterEditor.module.css
+┃ ┗ 📂pages
+┃ ┃ ┣ 📂ControlsOverlay
+┃ ┃ ┃ ┣ 📜ControlsOverlay.jsx
+┃ ┃ ┃ ┗ 📜ControlsOverlay.module.css
+┃ ┃ ┣ 📂GameMode
+┃ ┃ ┃ ┣ 📜GameModeSelect.jsx
+┃ ┃ ┃ ┗ 📜GameModeSelect.module.css
+┃ ┃ ┣ 📂MainMenu
+┃ ┃ ┃ ┣ 📜MainMenuUI.jsx
+┃ ┃ ┃ ┗ 📜MainMenuUI.module.css
+┃ ┃ ┗ 📂Ranking
+┃ ┃ ┃ ┣ 📜RankingUI.jsx
+┃ ┃ ┃ ┗ 📜RankingUI.module.css
+┣ 📂constants
+┃ ┗ 📜UltimateSkills.js
+┣ 📂game
+┃ ┣ 📂characters
+┃ ┃ ┣ 📂effects
+┃ ┃ ┃ ┣ 📜ImpactEffect.js
+┃ ┃ ┃ ┗ 📜SoundManager.js
+┃ ┃ ┣ 📜Character.js
+┃ ┃ ┣ 📜Enemy.js
+┃ ┃ ┣ 📜Player.js
+┃ ┃ ┣ 📜Projectile.js
+┃ ┃ ┗ 📜Ultimate.js
+┃ ┣ 📂scenes
+┃ ┃ ┣ 📜Boot.js
+┃ ┃ ┣ 📜CombatScene.js
+┃ ┃ ┣ 📜GameOver.js
+┃ ┃ ┣ 📜MainMenu.js
+┃ ┃ ┣ 📜Preloader.js
+┃ ┃ ┗ 📜RankingScene.js
+┃ ┣ 📂utils
+┃ ┃ ┗ 📜Security.js
+┃ ┣ 📜EventBus.js
+┃ ┗ 📜main.js
+┣ 📂service
+┃ ┣ 📜api.js
+┃ ┣ 📜authApi.js
+┃ ┣ 📜playerApi.js
+┃ ┗ 📜userApi.js
+┣ 📂store
+┃ ┣ 📜useAccountStore.js
+┃ ┣ 📜useAuthStore.js
+┃ ┣ 📜useCharacterStore.js
+┃ ┗ 📜useCombatStore.js
+┣ 📂test
+┃ ┣ 📂mocks
+┃ ┃ ┗ 📜PhaserMock.js
+┃ ┣ 📜AccountEditor.test.jsx
+┃ ┣ 📜api.test.js
+┃ ┣ 📜App.test.jsx
+┃ ┣ 📜authApi.test.js
+┃ ┣ 📜AuthError.test.jsx
+┃ ┣ 📜AuthField.test.jsx
+┃ ┣ 📜AuthForm.test.jsx
+┃ ┣ 📜AuthToggle.test.jsx
+┃ ┣ 📜AuthUI.test.jsx
+┃ ┣ 📜Character.test.js
+┃ ┣ 📜CharacterEditor.test.jsx
+┃ ┣ 📜CharacterPreview.test.jsx
+┃ ┣ 📜characterSVG.test.js
+┃ ┣ 📜ColorSwatch.test.jsx
+┃ ┣ 📜CombatPopUp.test.jsx
+┃ ┣ 📜CombatScene.test.js
+┃ ┣ 📜ControlsOverlay.test.jsx
+┃ ┣ 📜Enemy.test.js
+┃ ┣ 📜EnemySVG.test.js
+┃ ┣ 📜example.test.js
+┃ ┣ 📜GameModeSelect.test.jsx
+┃ ┣ 📜GameOver.test.js
+┃ ┣ 📜main.test.js
+┃ ┣ 📜MainMenu.test.js
+┃ ┣ 📜MainMenuUI.test.jsx
+┃ ┣ 📜OptionButton.test.jsx
+┃ ┣ 📜Player.test.js
+┃ ┣ 📜playerApi.test.js
+┃ ┣ 📜Preloader.test.js
+┃ ┣ 📜Projectile.test.js
+┃ ┣ 📜RankingScene.test.js
+┃ ┣ 📜RankingUI.test.jsx
+┃ ┣ 📜SaveToast.test.jsx
+┃ ┣ 📜Security.test.js
+┃ ┣ 📜setup.js
+┃ ┣ 📜Ultimate.test.js
+┃ ┣ 📜UltimateSelector.test.jsx
+┃ ┣ 📜useAccountStore.test.js
+┃ ┣ 📜useAuthStore.test.js
+┃ ┣ 📜useCharacterStore.test.js
+┃ ┣ 📜useCombatStore.test.js
+┃ ┗ 📜userApi.test.js
+┣ 📂tests
+┃ ┣ 📂e2e
+┃ ┃ ┗ 📜combat.spec.js
+┃ ┗ 📜example.spec.js
+┣ 📜App.jsx
+┣ 📜App.module.css
+┣ 📜main.jsx
+┗ 📜PhaserGame.jsx
 
 ![Pantalla de inicio](public/Screen.jpg)
 
 #### 5. Ejecutar la aplicación
+
 ```bash
 npm run dev
 ```
@@ -188,11 +190,11 @@ La API estará disponible en `http://localhost:5173`.
 
 #### ⚔️ Habilidades definitivas
 
-| Habilidad | Efecto |
-|---|---|
-| `FRIDAY_DEPLOY` | Cura al jugador +30 HP (máx. 100) |
+| Habilidad        | Efecto                                 |
+| ---------------- | -------------------------------------- |
+| `FRIDAY_DEPLOY`  | Cura al jugador +30 HP (máx. 100)      |
 | `SPAGHETTI_CODE` | Inflige 5 de daño a todos los enemigos |
-| `GIT_CLONE` | Invoca un clon que ataca por ti |
+| `GIT_CLONE`      | Invoca un clon que ataca por ti        |
 
 > Todas las habilidades tienen un cooldown de **20 segundos**.
 
@@ -208,14 +210,13 @@ El proyecto incluye tests unitarios, de integración y E2E.
 npm run test:all
 ```
 
-
 ### 👩‍💻 Autora
 
 **Jennifer Cros** — Proyecto individual desarrollado durante el bootcamp de **FemCoders**.
 
 **Enlace al Backend** https://github.com/FemcodeFighters/Back-FemCodeFighters.git
 
-----------------------------------------------------------------------------------------------
+---
 
 # Phaser React Template
 
@@ -231,20 +232,18 @@ This template has been updated for:
 - [React 19.0.0](https://github.com/facebook/react)
 - [Vite 6.3.1](https://github.com/vitejs/vite)
 
-
-
 ## Requirements
 
 [Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Launch a development web server |
-| `npm run build` | Create a production build in the `dist` folder |
-| `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
+| Command               | Description                                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| `npm install`         | Install project dependencies                                                                             |
+| `npm run dev`         | Launch a development web server                                                                          |
+| `npm run build`       | Create a production build in the `dist` folder                                                           |
+| `npm run dev-nolog`   | Launch a development web server without sending anonymous data (see "About log.js" below)                |
 | `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
 
 ## Writing Code
@@ -259,19 +258,19 @@ Once the server is running you can edit any of the files in the `src` folder. Vi
 
 We have provided a default project structure to get you started. This is as follows:
 
-| Path                          | Description                                                                 |
-|-------------------------------|-----------------------------------------------------------------------------|
-| `index.html`                  | A basic HTML page to contain the game.                                     |
-| `src`                         | Contains the React client source code.                                     |
-| `src/main.jsx`                | The main **React** entry point. This bootstraps the React application.      |
-| `src/App.jsx`                 | The main React component.                                                  |
-| `src/PhaserGame.jsx`          | The React component that initializes the Phaser Game and serves as a bridge between React and Phaser. |
-| `src/game/EventBus.js`        | A simple event bus to communicate between React and Phaser.                |
-| `src/game`                    | Contains the game source code.                                             |
-| `src/game/main.jsx`           | The main **game** entry point. This contains the game configuration and starts the game. |
-| `src/game/scenes/`            | The Phaser Scenes are in this folder.                                      |
-| `public/style.css`            | Some simple CSS rules to help with page layout.                            |
-| `public/assets`               | Contains the static assets used by the game.                               |
+| Path                   | Description                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| `index.html`           | A basic HTML page to contain the game.                                                                |
+| `src`                  | Contains the React client source code.                                                                |
+| `src/main.jsx`         | The main **React** entry point. This bootstraps the React application.                                |
+| `src/App.jsx`          | The main React component.                                                                             |
+| `src/PhaserGame.jsx`   | The React component that initializes the Phaser Game and serves as a bridge between React and Phaser. |
+| `src/game/EventBus.js` | A simple event bus to communicate between React and Phaser.                                           |
+| `src/game`             | Contains the game source code.                                                                        |
+| `src/game/main.jsx`    | The main **game** entry point. This contains the game configuration and starts the game.              |
+| `src/game/scenes/`     | The Phaser Scenes are in this folder.                                                                 |
+| `public/style.css`     | Some simple CSS rules to help with page layout.                                                       |
+| `public/assets`        | Contains the static assets used by the game.                                                          |
 
 ## React Bridge
 
@@ -281,14 +280,14 @@ To communicate between React and Phaser, you can use the **EventBus.js** file. T
 
 ```js
 // In React
-import { EventBus } from './EventBus';
+import { EventBus } from "./EventBus";
 
 // Emit an event
-EventBus.emit('event-name', data);
+EventBus.emit("event-name", data);
 
 // In Phaser
 // Listen for an event
-EventBus.on('event-name', (data) => {
+EventBus.on("event-name", (data) => {
     // Do something with the data
 });
 ```
@@ -305,21 +304,17 @@ You can get the current Phaser Scene from the component event `"current-active-s
 
 **Important**: When you add a new Scene to your game, make sure you expose to React by emitting the `"current-scene-ready"` event via the `EventBus`, like this:
 
-
 ```js
-class MyScene extends Phaser.Scene
-{
-    constructor ()
-    {
-        super('MyScene');
+class MyScene extends Phaser.Scene {
+    constructor() {
+        super("MyScene");
     }
 
-    create ()
-    {
+    create() {
         // Your Game Objects and logic here
 
         // At the end of create method:
-        EventBus.emit('current-scene-ready', this);
+        EventBus.emit("current-scene-ready", this);
     }
 }
 ```
@@ -339,7 +334,7 @@ const ReactComponent = () => {
     const phaserRef = useRef(); // you can access to this ref from phaserRef.current
 
     const onCurrentActiveScene = (scene) => {
-    
+
         // This is invoked
 
     }
@@ -366,21 +361,21 @@ Vite supports loading assets via JavaScript module `import` statements.
 This template provides support for both embedding assets and also loading them from a static folder. To embed an asset, you can import it at the top of the JavaScript file you are using it in:
 
 ```js
-import logoImg from './assets/logo.png'
+import logoImg from "./assets/logo.png";
 ```
 
 To load static files such as audio files, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
 
 ```js
-preload ()
+preload();
 {
     //  This is an example of an imported bundled image.
     //  Remember to import it at the top of this file
-    this.load.image('logo', logoImg);
+    this.load.image("logo", logoImg);
 
     //  This is an example of loading a static image
     //  from the public/assets folder:
-    this.load.image('background', 'assets/bg.png');
+    this.load.image("background", "assets/bg.png");
 }
 ```
 
@@ -390,7 +385,7 @@ When you issue the `npm run build` command, all static assets are automatically 
 
 After you run the `npm run build` command, your code will be built into a single bundle and saved to the `dist` folder, along with any other assets your project imported, or stored in the public assets folder.
 
-In order to deploy your game, you will need to upload *all* of the contents of the `dist` folder to a public facing web server.
+In order to deploy your game, you will need to upload _all_ of the contents of the `dist` folder to a public facing web server.
 
 ## Customizing the Template
 
@@ -460,4 +455,3 @@ Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, 
 The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
 
 All rights reserved.
-
