@@ -5,6 +5,7 @@ import ColorSwatch from "../../atoms/ColorSwatch";
 import OptionButton from "../../atoms/OptionButton";
 import useCharacterStore from "../../../store/useCharacterStore";
 import SaveToast from "../../atoms/SaveToast/SaveToast";
+import BackButton from "../../atoms/BackButton/BackButton";
 
 const ULTIMATE_INFO = {
     FRIDAY_DEPLOY: {
@@ -138,13 +139,11 @@ export default function CharacterEditor({
                 <div className={styles.grid} />
                 <div
                     className={styles.loadingText}
-                    style={{ color: "#ef4444" }}
                 >
                     // ERROR: PERFIL NEURAL NO ENCONTRADO
                     <button
                         onClick={onLogout}
                         className={styles.logoutBtn}
-                        style={{ position: "relative", marginTop: "20px" }}
                     >
                         RELOGUEAR
                     </button>
@@ -163,9 +162,7 @@ export default function CharacterEditor({
             <div className={styles.grid} />
             <div className={styles.scanlines} />
 
-            <button className={styles.backBtn} onClick={onBack}>
-                ← BACK
-            </button>
+            <BackButton onBack={onBack}/>
 
             <div className={styles.topRight}>
                 <button className={styles.accountBtn} onClick={onEditAccount}>

@@ -1,0 +1,21 @@
+.backBtn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.3);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 16px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition:
+        color 0.2s,
+        border-color 0.2s;
+}
+.backBtn:hover {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.4);
+}

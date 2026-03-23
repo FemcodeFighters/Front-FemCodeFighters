@@ -1,4 +1,5 @@
 import styles from "./GameModeSelect.module.css";
+import BackButton from "../../atoms/BackButton/BackButton";
 
 export default function GameModeSelect({ onSelectSolo, onBack }) {
     return (
@@ -6,9 +7,7 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
             <div className={styles.grid} />
             <div className={styles.scanlines} />
 
-            <button className={styles.backBtn} onClick={onBack}>
-                ← BACK
-            </button>
+            <BackButton onBack={onBack}/>
 
             <div className={styles.content}>
                 <div className={styles.supertitle}>// SELECT MODE</div>
@@ -21,11 +20,9 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
                         <div className={styles.cardIcon}>⚔️</div>
                         <div className={styles.cardTitle}>SOLO</div>
                         <div className={styles.cardDesc}>
-                            1 jugadora vs IA
-                            <br />
-                            Enfréntate a los lenguajes
-                            <br />
-                            de programación en solitario
+                           <p>1 jugadora vs IA</p>
+                           <p>Enfréntate a los lenguajes</p>
+                            <p>de programación en solitario</p>
                         </div>
                         <div className={styles.tagReady}>DISPONIBLE</div>
                     </div>
@@ -34,11 +31,9 @@ export default function GameModeSelect({ onSelectSolo, onBack }) {
                         <div className={styles.cardIcon}>🌐</div>
                         <div className={styles.cardTitle}>CO-OP ONLINE</div>
                         <div className={styles.cardDesc}>
-                            2-4 jugadoras vs IA
-                            <br />
-                            Únete con otras devs
-                            <br />
-                            para derrotar el stack
+                            <p>2-4 jugadoras vs IA</p>
+                            <p>Únete con otras devs</p>
+                            <p>para derrotar el stack</p>
                         </div>
                         <div className={styles.tagSoon}>PRÓXIMAMENTE</div>
                     </div>

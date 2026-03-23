@@ -54,28 +54,6 @@
     pointer-events: none;
 }
 
-.backBtn {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 30;
-    font-family: "Share Tech Mono", monospace;
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.3);
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 5px 14px;
-    cursor: pointer;
-    letter-spacing: 0.15em;
-    transition:
-        color 0.2s,
-        border-color 0.2s;
-}
-.backBtn:hover {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
 .header {
     position: relative;
     z-index: 10;
@@ -86,7 +64,7 @@
 
 .headerTitle {
     font-family: "Orbitron", monospace;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0.1em;
@@ -97,7 +75,7 @@
 
 .headerSub {
     font-family: "Share Tech Mono", monospace;
-    font-size: 10px;
+    font-size: 14px;
     color: rgba(0, 255, 200, 0.4);
     letter-spacing: 0.3em;
     margin-top: 4px;
@@ -124,7 +102,7 @@
 
 .previewLabel {
     font-family: "Share Tech Mono", monospace;
-    font-size: 10px;
+    font-size: 14px;
     color: rgba(0, 255, 200, 0.4);
     letter-spacing: 0.3em;
 }
@@ -145,7 +123,7 @@
 
 .tab {
     font-family: "Share Tech Mono", monospace;
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.12em;
     padding: 5px 10px;
     background: transparent;
@@ -166,7 +144,7 @@
 
 .sectionTitle {
     font-family: "Share Tech Mono", monospace;
-    font-size: 10px;
+    font-size: 14px;
     color: rgba(0, 255, 200, 0.5);
     letter-spacing: 0.2em;
     margin-bottom: 10px;
@@ -208,7 +186,7 @@
 
 .optionBtn {
     font-family: "Share Tech Mono", monospace;
-    font-size: 10px;
+    font-size: 11px;
     padding: 5px 10px;
     background: transparent;
     color: rgba(255, 255, 255, 0.35);
@@ -235,7 +213,7 @@
 
 .saveBtn {
     font-family: "Orbitron", monospace;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.15em;
     padding: 11px 20px;
@@ -280,7 +258,7 @@
 
 .resetBtn {
     font-family: "Share Tech Mono", monospace;
-    font-size: 11px;
+    font-size: 16px;
     padding: 11px 14px;
     background: transparent;
     color: rgba(255, 255, 255, 0.2);
@@ -295,7 +273,7 @@
 
 .error {
     font-family: "Share Tech Mono", monospace;
-    font-size: 10px;
+    font-size: 14px;
     color: #ef4444;
     margin-top: 8px;
     letter-spacing: 0.05em;
@@ -303,7 +281,7 @@
 
 .continueBtn {
     font-family: "Orbitron", monospace;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.15em;
     padding: 11px 24px;
@@ -326,7 +304,7 @@
     border: 1px solid #ef4444;
     color: #ef4444;
     font-family: monospace;
-    font-size: 0.75rem;
+    font-size: 16px;
     letter-spacing: 0.15em;
     padding: 0.4rem 0.9rem;
     cursor: pointer;
@@ -349,7 +327,7 @@
     background: transparent;
     border: 1px solid #00ffc8;
     color: #00ffc8;
-    font-family: monospace;
+    font-family: 'Share Tech Mono',monospace;
     font-size: 0.75rem;
     letter-spacing: 0.15em;
     padding: 0.4rem 0.9rem;
@@ -359,4 +337,8 @@
 
 .accountBtn:hover {
     background: #00ffc822;
+}
+
+.loadingText{
+    color: #ef4444;
 }

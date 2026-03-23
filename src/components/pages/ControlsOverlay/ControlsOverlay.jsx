@@ -1,4 +1,5 @@
 import styles from "./ControlsOverlay.module.css";
+import BackButton from "../../atoms/BackButton/BackButton";
 
 export default function ControlsOverlay({ onDismiss, onBack }) {
     return (
@@ -7,9 +8,7 @@ export default function ControlsOverlay({ onDismiss, onBack }) {
             <div className={styles.scanlines}></div>
             <div className={styles.glitchLine}></div>
 
-            <button className={styles.backBtn} onClick={onBack}>
-                ← BACK
-            </button>
+            <BackButton onBack={onBack}/>
 
             <div className={styles.content}>
                 <span className={styles.supertitle}>

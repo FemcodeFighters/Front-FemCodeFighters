@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styles from "./AccountEditor.module.css";
 import useAccountStore from "../../../store/useAccountStore";
+import BackButton from "../../atoms/BackButton/BackButton";
 
 const TABS = ["NOMBRE", "EMAIL", "PASSWORD"];
 
@@ -78,9 +79,7 @@ export default function AccountEditor({ onBack, onDeleteSuccess }) {
             <div className={styles.grid} />
             <div className={styles.scanlines} />
 
-            <button className={styles.backBtn} onClick={onBack}>
-                ← BACK
-            </button>
+            <BackButton onBack={onBack}/>
 
             <div className={styles.header}>
                 <div className={styles.headerTitle}>

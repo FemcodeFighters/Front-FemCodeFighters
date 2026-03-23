@@ -3,6 +3,7 @@ import styles from "./AuthUI.module.css";
 import AuthForm from "../../molecules/AuthForm";
 import useAuthStore from "../../../store/useAuthStore";
 import { EventBus } from "../../../game/EventBus"; 
+import BackButton from "../../atoms/BackButton/BackButton";
 
 export default function AuthUI({ onBack, onSuccess }) {
     const [mode, setMode] = useState("login");
@@ -30,9 +31,7 @@ export default function AuthUI({ onBack, onSuccess }) {
             <div className={styles.grid} />
             <div className={styles.scanlines} />
 
-            <button className={styles.backBtn} onClick={onBack}>
-                ← BACK
-            </button>
+            <BackButton onBack={onBack}/>
 
             <div className={styles.card}>
                 <div className={styles.title}>
