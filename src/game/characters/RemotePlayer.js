@@ -50,7 +50,26 @@ export default class RemotePlayer extends Character {
         this._targetY = translatedY;
         this._targetFacingRight = serverState.facingRight;
 
-        if (serverState.attacking || serverState.usingUltimate) {
+        const wasAttacking = this._wasAttacking ?? false;
+        const wasUsingUltimate = this._wasUsingUltimate ?? false;
+
+        const isAttacking = serverState.attacking;
+        const isUsingUltimate = serverState.usingUltimate;
+
+        if (isAttacking && !wasAttacking) {
+            this.canAttack = true;
+            this.attack();
+        }
+
+        if (isUsingUltimate && !wasUsingUltimate) {
+            this.canRanged = true;
+            this.rangedAttack();
+        }
+
+        this._wasAttacking = isAttacking;
+        this._wasUsingUltimate = isUsingUltimate;
+
+        if (isAttacking || isUsingUltimate) {
             this._targetState = CharacterState.ATTACK;
         } else if (serverState.jumping) {
             this._targetState = CharacterState.JUMP;
@@ -78,16 +97,18 @@ export default class RemotePlayer extends Character {
         const elapsed = Date.now() - (this._snapshotTime ?? 0);
         const t = Math.min(1, elapsed / (this._interpDuration ?? 80));
 
-        this.x = Phaser.Math.Linear(
-            this._prevX ?? this.x,
-            this._targetX ?? this.x,
-            t,
-        );
-        this.y = Phaser.Math.Linear(
-            this._prevY ?? this.y,
-            this._targetY ?? this.y,
-            t,
-        );
+        if (this.state !== CharacterState.ATTACK) {
+            this.x = Phaser.Math.Linear(
+                this._prevX ?? this.x,
+                this._targetX ?? this.x,
+                t,
+            );
+            this.y = Phaser.Math.Linear(
+                this._prevY ?? this.y,
+                this._targetY ?? this.y,
+                t,
+            );
+        }
 
         if (this._label) {
             this._label.setPosition(this.x, this.y - 140);
@@ -106,7 +127,6 @@ export default class RemotePlayer extends Character {
         this._updateState();
         this._playAnimation(this.state.toLowerCase());
     }
-
     destroy() {
         if (this._label) this._label.destroy();
         super.destroy();
