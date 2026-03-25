@@ -9,9 +9,7 @@ export class Preloader extends Scene {
 
     init() {
         const { width, height } = this.scale;
-
         this.cameras.main.setBackgroundColor("#020408");
-
         const gridGfx = this.add.graphics();
         gridGfx.lineStyle(1, 0x00ffc8, 0.04);
         const step = 40;
@@ -33,14 +31,12 @@ export class Preloader extends Scene {
             scanGfx.fillStyle(0x000000, 0.12);
             scanGfx.fillRect(0, y + 2, width, 2);
         }
-
         const titleY = height / 2 - 140;
         const fontStyle = {
             fontFamily: "Orbitron, monospace",
             fontSize: "88px",
             fontStyle: "900",
         };
-
         this.glitchR = this.add
             .text(width / 2 - 3, titleY + 2, "CODEFIGHTERS", {
                 ...fontStyle,
@@ -50,7 +46,6 @@ export class Preloader extends Scene {
             .setAlpha(0)
             .setDepth(10)
             .setBlendMode(Phaser.BlendModes.ADD);
-
         this.glitchC = this.add
             .text(width / 2 + 3, titleY - 2, "CODEFIGHTERS", {
                 ...fontStyle,
@@ -60,7 +55,6 @@ export class Preloader extends Scene {
             .setAlpha(0)
             .setDepth(11)
             .setBlendMode(Phaser.BlendModes.ADD);
-
         this.glitchW = this.add
             .text(width / 2, titleY, "CODEFIGHTERS", {
                 ...fontStyle,
@@ -69,12 +63,10 @@ export class Preloader extends Scene {
             .setOrigin(0.5)
             .setAlpha(0)
             .setDepth(12);
-
         this.noiseLine = this.add
             .rectangle(width / 2, titleY, 700, 0, 0x00ffc8, 0.15)
             .setDepth(13)
             .setAlpha(0);
-
         this.time.delayedCall(200, () => {
             this._glitchBurst(titleY, () => {
                 this.glitchW.setAlpha(1);
@@ -83,7 +75,6 @@ export class Preloader extends Scene {
                 this._startGlitchLoop(titleY);
             });
         });
-
         const subtitle = this.add
             .text(
                 width / 2,
@@ -99,7 +90,6 @@ export class Preloader extends Scene {
             .setOrigin(0.5)
             .setAlpha(0)
             .setDepth(10);
-
         const dividerLeft = this.add
             .rectangle(width / 2 - 5, height / 2 - 36, 0, 1, 0x00ffc8, 0.6)
             .setOrigin(1, 0.5)
@@ -108,7 +98,6 @@ export class Preloader extends Scene {
             .rectangle(width / 2 + 5, height / 2 - 36, 0, 1, 0x00ffc8, 0.6)
             .setOrigin(0, 0.5)
             .setDepth(10);
-
         this.glitchLine = this.add
             .rectangle(width / 2, 100, width, 1, 0x00ffc8, 0.4)
             .setDepth(49);
@@ -128,7 +117,6 @@ export class Preloader extends Scene {
                 });
             },
         });
-
         const bootLines = [
             "> CODEFIGHTERS_OS v2.4.1 — BOOT SEQUENCE",
             "> NEURAL_LINK.................. [  OK  ]",
@@ -148,7 +136,6 @@ export class Preloader extends Scene {
                 .setDepth(10);
             this.bootTexts.push(t);
         });
-
         this.fileLabel = this.add
             .text(
                 width / 2 - 170,
@@ -162,7 +149,6 @@ export class Preloader extends Scene {
             )
             .setAlpha(0)
             .setDepth(10);
-
         this.pctText = this.add
             .text(width / 2 + 60, logsY + bootLines.length * 20 + 6, "[ 0% ]", {
                 fontFamily: "Share Tech Mono, monospace",
@@ -171,7 +157,6 @@ export class Preloader extends Scene {
             })
             .setAlpha(0)
             .setDepth(10);
-
         const barWidth = 340;
         const barX = width / 2 - barWidth / 2;
         const barY = height / 2 + 163;
@@ -189,7 +174,6 @@ export class Preloader extends Scene {
             .setOrigin(0, 0.5)
             .setDepth(12)
             .setAlpha(0);
-
         this.add
             .text(width - 16, height - 14, "v0.1.0-alpha", {
                 fontFamily: "monospace",
@@ -199,7 +183,6 @@ export class Preloader extends Scene {
             .setOrigin(1, 1)
             .setAlpha(0.15)
             .setDepth(10);
-
         this.load.on("progress", (progress) => {
             const p = Math.round(progress * 100);
             this.barFill.width = (barWidth - 4) * progress;
@@ -209,7 +192,6 @@ export class Preloader extends Scene {
         this.load.on("fileprogress", (file) => {
             this.fileLabel.setText(`> FETCHING: ${file.key.toLowerCase()}...`);
         });
-
         this.tweens.add({
             targets: subtitle,
             alpha: 0.6,
@@ -323,7 +305,6 @@ export class Preloader extends Scene {
                 dur: 0,
             },
         ];
-
         let delay = 0;
         steps.forEach((s, i) => {
             this.time.delayedCall(delay, () => {
@@ -347,17 +328,14 @@ export class Preloader extends Scene {
 
     _startGlitchLoop(titleY) {
         const { width } = this.scale;
-
         const doGlitch = () => {
             const intensity = Phaser.Math.Between(1, 3);
             const frames = intensity * 2 + 2;
             let delay = 0;
-
             for (let i = 0; i < frames; i++) {
                 const dx = Phaser.Math.Between(-intensity * 4, intensity * 4);
                 const dy = Phaser.Math.Between(-intensity, intensity);
                 const dur = Phaser.Math.Between(30, 80);
-
                 this.time.delayedCall(delay, () => {
                     this.glitchR.setPosition(
                         width / 2 + dx - 3,
@@ -382,7 +360,6 @@ export class Preloader extends Scene {
                     }
                 });
                 delay += dur;
-
                 if (i === frames - 1) {
                     this.time.delayedCall(delay + 40, () => {
                         this.glitchR.setPosition(width / 2 - 3, titleY + 2);
@@ -392,17 +369,14 @@ export class Preloader extends Scene {
                     });
                 }
             }
-
             this.time.delayedCall(Phaser.Math.Between(1800, 4500), doGlitch);
         };
-
         this.time.delayedCall(Phaser.Math.Between(600, 1200), doGlitch);
     }
 
     preload() {
         this.load.setPath("assets/sound/");
         this.load.audio("menu_theme", "89.mp3");
-
         const characterData = useCharacterStore.getState().character;
         if (characterData) {
             try {
@@ -424,7 +398,6 @@ export class Preloader extends Scene {
         this.barGlow.width = 336;
         this.pctText.setText("[ 100% ]");
         this.fileLabel.setText("> FETCHING: complete");
-
         this.time.delayedCall(600, () => {
             this._glitchBurst(this.scale.height / 2 - 140, () => {
                 this.cameras.main.flash(400, 0, 255, 200, 0.6);
@@ -434,4 +407,3 @@ export class Preloader extends Scene {
         });
     }
 }
-

@@ -56,7 +56,6 @@ export default class CoopCombatScene extends Scene {
                 getCharacter(),
                 getUltimateConfig(),
             ]);
-
             await this._ensurePlayerTexture(serverData, "player_custom");
             this.localPlayer = new Player(this, 200, height - 90);
             this.localPlayer.body.setAllowGravity(false);
@@ -107,36 +106,40 @@ export default class CoopCombatScene extends Scene {
     }
 
     async _applyServerState(state) {
-    if (!state?.players) return;
-    for (const [pid, pState] of Object.entries(state.players)) {
-        const playerIdStr = String(pid);
-        const localIdStr = String(this.localPlayerId);
-        if (playerIdStr === localIdStr) {
-            this._reconcileLocalPlayer(pState);
-            continue;
-        }
-        if (!this.remotePlayers.has(playerIdStr)) {
-            this._spawnRemotePlayer(playerIdStr, pState);
-        } else {
-            const rp = this.remotePlayers.get(playerIdStr);
-            if (rp) {
-                if (pState.attacking || pState.isAttacking) {
-                    console.log("!!! EL SOCKET RECIBIÓ ATAQUE PARA:", playerIdStr, pState);
+        if (!state?.players) return;
+        for (const [pid, pState] of Object.entries(state.players)) {
+            const playerIdStr = String(pid);
+            const localIdStr = String(this.localPlayerId);
+            if (playerIdStr === localIdStr) {
+                this._reconcileLocalPlayer(pState);
+                continue;
+            }
+            if (!this.remotePlayers.has(playerIdStr)) {
+                this._spawnRemotePlayer(playerIdStr, pState);
+            } else {
+                const rp = this.remotePlayers.get(playerIdStr);
+                if (rp) {
+                    if (pState.attacking || pState.isAttacking) {
+                        console.log(
+                            "!!! EL SOCKET RECIBIÓ ATAQUE PARA:",
+                            playerIdStr,
+                            pState,
+                        );
+                    }
+                    rp.applyServerState(pState);
                 }
-                rp.applyServerState(pState);
             }
         }
+        this.remotePlayers.forEach((rp, pid) => {
+            if (!state.players[pid]) {
+                if (rp.destroy) rp.destroy();
+                this.remotePlayers.delete(pid);
+            }
+        });
+        if (state.enemy) this._applyEnemyState(state.enemy);
+        if (state.phase === "WIN") this._onCombatEnd("player");
+        if (state.phase === "LOSE") this._onCombatEnd("enemy");
     }
-    this.remotePlayers.forEach((rp, pid) => {
-        if (!state.players[pid]) {
-            if (rp.destroy) rp.destroy();
-            this.remotePlayers.delete(pid);
-        }
-    });
-    if (state.enemy) this._applyEnemyState(state.enemy);
-    if (state.phase === "WIN") this._onCombatEnd("player");
-    if (state.phase === "LOSE") this._onCombatEnd("enemy");
-}
 
     _reconcileLocalPlayer(serverState) {
         if (!this.localPlayer) return;
@@ -172,36 +175,34 @@ export default class CoopCombatScene extends Scene {
     }
 
     async _spawnRemotePlayer(playerId, pState) {
-    const playerIdStr = String(playerId); // Normalizar
-    const textureKey = `player_${playerIdStr}`;
-
-    if (this.remotePlayers.has(playerIdStr) || this._loadingPlayers.has(playerIdStr)) return;
-    this._loadingPlayers.add(playerIdStr);
-
-    try {
-        const idNumerico = parseInt(playerIdStr, 10);
-        const characterData = await getPlayerById(idNumerico);
-        await this._ensurePlayerTexture(characterData, textureKey);
-    } catch (e) {
-        console.error(`Error cargando skin para ID ${playerIdStr}:`, e);
-        this._createFallbackTexture(textureKey);
+        const playerIdStr = String(playerId);
+        const textureKey = `player_${playerIdStr}`;
+        if (
+            this.remotePlayers.has(playerIdStr) ||
+            this._loadingPlayers.has(playerIdStr)
+        )
+            return;
+        this._loadingPlayers.add(playerIdStr);
+        try {
+            const idNumerico = parseInt(playerIdStr, 10);
+            const characterData = await getPlayerById(idNumerico);
+            await this._ensurePlayerTexture(characterData, textureKey);
+        } catch (e) {
+            console.error(`Error cargando skin para ID ${playerIdStr}:`, e);
+            this._createFallbackTexture(textureKey);
+        }
+        this._loadingPlayers.delete(playerIdStr);
+        if (this.remotePlayers.has(playerIdStr)) return;
+        const rp = new RemotePlayer(
+            this,
+            pState.x ?? 500,
+            this._toClientY(pState.y ?? 1000),
+            textureKey,
+            playerIdStr,
+        );
+        this.remotePlayers.set(playerIdStr, rp);
+        this.physics.add.collider(rp, this.platforms);
     }
-
-    this._loadingPlayers.delete(playerIdStr);
-
-    if (this.remotePlayers.has(playerIdStr)) return;
-
-    const rp = new RemotePlayer(
-        this,
-        pState.x ?? 500,
-        this._toClientY(pState.y ?? 1000),
-        textureKey,
-        playerIdStr // Pasar como string
-    );
-    
-    this.remotePlayers.set(playerIdStr, rp);
-    this.physics.add.collider(rp, this.platforms);
-}
 
     _createFallbackTexture(key) {
         if (this.textures.exists(key)) return;
@@ -217,12 +218,10 @@ export default class CoopCombatScene extends Scene {
             if (enemyState.alive) this._spawnEnemy();
             return;
         }
-
         const translatedY = this._toClientY(enemyState.y);
         this.enemy.x = Phaser.Math.Linear(this.enemy.x, enemyState.x, 0.3);
         this.enemy.y = Phaser.Math.Linear(this.enemy.y, translatedY, 0.3);
         this.enemy.setFlipX(!enemyState.facingRight);
-
         if (
             enemyState.health !== undefined &&
             Math.abs(this.enemy.hp - enemyState.health) > 0.5
@@ -230,7 +229,6 @@ export default class CoopCombatScene extends Scene {
             this.enemy.hp = enemyState.health;
             this._updateUI();
         }
-
         if (!enemyState.alive && this.enemy.active) {
             this.enemy.die();
         }
@@ -238,31 +236,24 @@ export default class CoopCombatScene extends Scene {
 
     update(_time, delta) {
         if (this.combatFinished || !this.localPlayer) return;
-
         this.localPlayer.update(delta);
-
         this.remotePlayers.forEach((rp) => {
             if (rp && typeof rp.update === "function" && rp.active) {
                 rp.update(delta);
             }
         });
-
         this._captureAndSendInput();
     }
 
     _captureAndSendInput() {
         if (!this.localPlayer) return;
-
         const cursors = this.localPlayer.cursors;
         const keys = this.localPlayer.keys;
         let action = "IDLE";
-
         if (cursors.left.isDown) action = "MOVE_LEFT";
         else if (cursors.right.isDown) action = "MOVE_RIGHT";
-
         const isJumpingOrFalling =
             this.localPlayer.isJumping || this.localPlayer.isFalling;
-
         if (
             (cursors.up.isDown || cursors.space?.isDown) &&
             !isJumpingOrFalling
@@ -271,11 +262,9 @@ export default class CoopCombatScene extends Scene {
             this.localPlayer.y -= 5;
             this.localPlayer.isJumping = true;
         }
-
         if (Phaser.Input.Keyboard.JustDown(keys.attack)) action = "ATTACK";
         if (Phaser.Input.Keyboard.JustDown(keys.ranged)) action = "RANGED";
         if (Phaser.Input.Keyboard.JustDown(keys.ultimate)) action = "ULTIMATE";
-
         this._sendInput(action);
     }
 
@@ -285,10 +274,8 @@ export default class CoopCombatScene extends Scene {
             this.enemy.removeAllListeners();
             this.enemy.destroy();
         }
-
         const spawnY = this._toClientY(300);
         this.enemy = new Enemy(this, width - 200, spawnY, "JAVASCRIPT");
-
         this.physics.add.collider(this.enemy, this.platforms);
         if (this.enemy.body) {
             this.enemy.body.setGravityY(1000);
@@ -341,7 +328,6 @@ export default class CoopCombatScene extends Scene {
     async _ensurePlayerTexture(serverData, textureKey) {
         if (!serverData || !textureKey) return;
         if (this.textures.exists(textureKey)) return;
-
         return new Promise((resolve) => {
             const frames = generateCharacterFrames(serverData, "idle");
             const svgString = frames[0];
@@ -350,7 +336,6 @@ export default class CoopCombatScene extends Scene {
                 type: "image/svg+xml;charset=utf-8",
             });
             const url = URL.createObjectURL(blob);
-
             img.onload = () => {
                 this.textures.addImage(textureKey, img);
                 URL.revokeObjectURL(url);
@@ -461,7 +446,6 @@ export default class CoopCombatScene extends Scene {
         );
         this.physics.add.existing(floorBody, true);
         platforms.add(floorBody);
-
         const floorGfx = this.add.graphics().setDepth(1);
         floorGfx.fillStyle(0x020408, 1);
         floorGfx.fillRect(0, groundY, width, 60);
@@ -470,11 +454,9 @@ export default class CoopCombatScene extends Scene {
         floorGfx.moveTo(0, groundY);
         floorGfx.lineTo(width, groundY);
         floorGfx.strokePath();
-
         this._addPlatform(platforms, 160, height - 260, 180);
         this._addPlatform(platforms, width / 2, height - 370, 200);
         this._addPlatform(platforms, width - 180, height - 290, 180);
-
         return platforms;
     }
 

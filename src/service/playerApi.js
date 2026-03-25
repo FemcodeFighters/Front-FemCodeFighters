@@ -110,13 +110,12 @@ export const updateCombatStats = async (won) => {
         console.error("Error en Stats:", error.response?.data || error.message);
         throw error;
     }
-}
+};
 
-    export const getUltimateConfig = async () => {
+export const getUltimateConfig = async () => {
     const response = await api.get("/api/player/ultimate-config");
     return response.data;
 };
-
 
 export const checkBackendHealth = async () => {
     await api.get("/api/health");
