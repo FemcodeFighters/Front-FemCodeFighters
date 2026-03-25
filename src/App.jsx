@@ -18,6 +18,8 @@ import {
 import RankingUI from "./components/pages/Ranking/RankingUI";
 import ControlsOverlay from "./components/pages/ControlsOverlay/ControlsOverlay";
 import CombatPopUp from "./components/molecules/CombatPopUp/CombatPopUp";
+import CoopLobby from "./components/pages/CoopLobby/CoopLobby";
+import CoopRoom from "./components/pages/CoopRoom/CoopRoom";
 
 function Bar({ value, max, color, label }) {
     const safeValue = value ?? 0;
@@ -217,6 +219,10 @@ function App() {
         ready: false,
     });
     const [isDamaged, setIsDamaged] = useState(false);
+
+    const [coopRoomId, setCoopRoomId] = useState(null);
+    const [isCoopHost, setIsCoopHost] = useState(false);
+
     const handlePlayerName = ({ name }) => setPlayerName(name.toUpperCase());
     const handleEnemyHealth = ({ hp, maxHP, type }) => {
         setEnemyHp({ hp, max: maxHP });
@@ -248,6 +254,31 @@ function App() {
         }
     };
 
+    const handleRoomReady = (roomId, isHost) => {
+        setCoopRoomId(roomId);
+        setIsCoopHost(isHost);
+        setScreen("coopRoom");
+    };
+
+    // FIX: obtener el playerId en el momento de la llamada desde el store,
+    // evitando depender del closure que puede tener el valor desactualizado
+    const handleCoopGameStart = (roomId) => {
+        resetCombatStats();
+        setScreen("coopCombat");
+
+        const playerId = useCharacterStore.getState().character?.id?.toString() ?? "";
+
+        if (phaserRef.current) {
+            const game = phaserRef.current.game;
+            game.scene.stop("MainMenu");
+            game.scene.stop("CombatScene");
+            game.scene.start("CoopCombatScene", {
+                roomId: roomId,
+                playerId: playerId,
+            });
+        }
+    };
+
     useEffect(() => {
         const handleLoadError = ({ message }) => {
             setCombatError(message);
@@ -261,6 +292,7 @@ function App() {
                 }
             }, 3000);
         };
+
         const handleCombatResult = async ({ winner }) => {
             try {
                 await updateCombatStats(winner === "player");
@@ -295,7 +327,7 @@ function App() {
         const handleCooldownRng = (ready) =>
             setPlayerCooldowns((p) => ({ ...p, ranged: ready }));
         const handleUltimate = (data) => setUltimateState(data);
-        const handleEnemyUltimate = (data) => setEnemyUltimate(data);
+        const handleEnemyUlt = (data) => setEnemyUltimate(data);
 
         EventBus.on("combat-load-error", handleLoadError);
         EventBus.on("combat-result", handleCombatResult);
@@ -307,7 +339,7 @@ function App() {
         EventBus.on("player-cooldown-attack", handleCooldownAtk);
         EventBus.on("player-cooldown-ranged", handleCooldownRng);
         EventBus.on("player-ultimate", handleUltimate);
-        EventBus.on("enemy-ultimate", handleEnemyUltimate);
+        EventBus.on("enemy-ultimate", handleEnemyUlt);
 
         getRanking().then(setRanking);
 
@@ -322,7 +354,7 @@ function App() {
             EventBus.off("player-cooldown-attack", handleCooldownAtk);
             EventBus.off("player-cooldown-ranged", handleCooldownRng);
             EventBus.off("player-ultimate", handleUltimate);
-            EventBus.off("enemy-ultimate", handleEnemyUltimate);
+            EventBus.off("enemy-ultimate", handleEnemyUlt);
         };
     }, [combatSessionId]);
 
@@ -336,9 +368,7 @@ function App() {
         resetCombatStats();
         setScreen("combat");
         if (phaserRef.current) {
-            setTimeout(() => {
-                EventBus.emit("start-solo-game");
-            }, 100);
+            setTimeout(() => EventBus.emit("start-solo-game"), 100);
         }
     };
 
@@ -350,6 +380,9 @@ function App() {
             game.scene.start("MainMenu");
         }
     };
+
+    const character = useCharacterStore((s) => s.character);
+    const coopPlayerId = character?.id?.toString() ?? "";
 
     return (
         <div id="app" className={styles.app}>
@@ -409,8 +442,50 @@ function App() {
             {screen === "gamemode" && (
                 <GameModeSelect
                     onSelectSolo={handleSelectSolo}
+                    onSelectCoop={() => setScreen("coopLobby")}
                     onBack={() => setScreen("instructions")}
                 />
+            )}
+
+            {screen === "coopLobby" && (
+                <CoopLobby
+                    playerId={coopPlayerId}
+                    onRoomReady={handleRoomReady}
+                    onBack={() => setScreen("gamemode")}
+                />
+            )}
+
+            {screen === "coopRoom" && (
+                <CoopRoom
+                    roomId={coopRoomId}
+                    playerId={coopPlayerId}
+                    isHost={isCoopHost}
+                    onGameStart={handleCoopGameStart}
+                    onBack={() => setScreen("coopLobby")}
+                />
+            )}
+
+            {screen === "coopCombat" && (
+                <div
+                    key={`session-${combatSessionId}`}
+                    className={`${styles.hudContainer} ${isDamaged ? styles.shake : ""}`}
+                >
+                    {combatError && (
+                        <div className={styles.combatError}>
+                            ⚠ {combatError}
+                        </div>
+                    )}
+                    <CombatPopUp />
+                    <CombatHUD
+                        playerHp={playerHp}
+                        enemyHp={enemyHp}
+                        playerCooldowns={playerCooldowns}
+                        ultimateState={ultimateState}
+                        enemyUltimate={enemyUltimate}
+                        playerName={playerName}
+                        enemyName={enemyName}
+                    />
+                </div>
             )}
 
             {screen === "combat" && (

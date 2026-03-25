@@ -1,0 +1,298 @@
+@keyframes gridMove {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 0 40px;
+    }
+}
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+@keyframes slotAppear {
+    from {
+        opacity: 0;
+        transform: scaleX(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+.root {
+    position: absolute;
+    inset: 0;
+    background: #020408;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 20;
+}
+
+.grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 255, 200, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 200, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 6s linear infinite;
+}
+
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.12) 2px,
+        rgba(0, 0, 0, 0.12) 4px
+    );
+    pointer-events: none;
+}
+
+.content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 680px;
+    padding: 0 24px;
+    gap: 24px;
+}
+
+.supertitle {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    color: #00ffc8;
+    letter-spacing: 0.4em;
+    animation: fadeInDown 0.5s ease 0.1s both;
+}
+
+.title {
+    font-family: "Orbitron", monospace;
+    font-size: 26px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.12em;
+    animation: fadeInDown 0.5s ease 0.2s both;
+}
+.title span {
+    color: #00ffc8;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeInDown 0.5s ease 0.3s both;
+}
+
+.dotOnline,
+.dotOffline {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.dotOnline {
+    background: #00ffc8;
+    box-shadow: 0 0 8px #00ffc8;
+}
+.dotOffline {
+    background: #ff4d6d;
+    animation: pulse 1s infinite;
+}
+
+.statusText {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.codeBox {
+    width: 100%;
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    background: rgba(0, 255, 200, 0.03);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    animation: fadeInUp 0.5s ease 0.3s both;
+}
+
+.codeLabel {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 0.25em;
+    flex-shrink: 0;
+}
+
+.codeValue {
+    font-family: "Orbitron", monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #00ffc8;
+    letter-spacing: 0.3em;
+    flex: 1;
+}
+
+.copyBtn {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.copyBtn:hover {
+    border-color: #00ffc8;
+    color: #00ffc8;
+}
+
+.slots {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeInUp 0.5s ease 0.4s both;
+}
+
+.slotFilled,
+.slotEmpty {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border: 1px solid;
+}
+
+.slotFilled {
+    border-color: rgba(0, 255, 200, 0.35);
+    background: rgba(0, 255, 200, 0.05);
+    animation: slotAppear 0.3s ease both;
+}
+
+.slotEmpty {
+    border-color: rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.slotIcon {
+    font-size: 20px;
+}
+
+.slotName {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 14px;
+    color: #ffffff;
+    letter-spacing: 0.1em;
+    flex: 1;
+}
+
+.slotReady {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    background: rgba(0, 255, 200, 0.1);
+    color: #00ffc8;
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    letter-spacing: 0.15em;
+}
+
+.slotWaiting {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.15em;
+    flex: 1;
+    animation: pulse 2s infinite;
+}
+
+.footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    animation: fadeInUp 0.5s ease 0.5s both;
+}
+
+.waitingHost {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 0.15em;
+    animation: pulse 2.5s infinite;
+}
+
+.btnStart {
+    font-family: "Orbitron", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 16px 36px;
+    background: #00ffc8;
+    color: #020408;
+    border: none;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        opacity 0.2s;
+    width: 100%;
+}
+.btnStart:hover:not(:disabled) {
+    background: #ffffff;
+}
+.btnStart:disabled {
+    background: transparent;
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 255, 200, 0.3),
+        transparent
+    );
+}

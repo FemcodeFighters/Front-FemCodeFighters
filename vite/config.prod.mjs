@@ -23,6 +23,9 @@ export default defineConfig({
         react(),
         phasermsg()
     ],
+    define: {
+        global: 'globalThis',
+    },
     logLevel: 'warning',
     build: {
         rollupOptions: {

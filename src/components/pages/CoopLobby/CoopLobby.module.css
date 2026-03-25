@@ -1,0 +1,304 @@
+@keyframes gridMove {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 0 40px;
+    }
+}
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.root {
+    position: absolute;
+    inset: 0;
+    background: #020408;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 20;
+}
+
+.grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 255, 200, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 200, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 6s linear infinite;
+}
+
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.12) 2px,
+        rgba(0, 0, 0, 0.12) 4px
+    );
+    pointer-events: none;
+}
+
+.content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 700px;
+    padding: 0 24px;
+}
+
+.supertitle {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    color: #00ffc8;
+    letter-spacing: 0.4em;
+    margin-bottom: 12px;
+    animation: fadeInDown 0.6s ease 0.1s both;
+}
+
+.title {
+    font-family: "Orbitron", monospace;
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.1em;
+    margin-bottom: 40px;
+    animation: fadeInDown 0.6s ease 0.2s both;
+}
+.title span {
+    color: #00ffc8;
+}
+
+.cards {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    animation: fadeInUp 0.6s ease 0.3s both;
+}
+
+.card {
+    flex: 1;
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    background: rgba(0, 255, 200, 0.03);
+    padding: 36px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        border-color 0.3s,
+        background 0.3s;
+    font-family: inherit;
+}
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 255, 200, 0.06);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.card:hover {
+    border-color: #00ffc8;
+}
+.card:hover::before {
+    opacity: 1;
+}
+
+.cardIcon {
+    font-size: 40px;
+    margin-bottom: 4px;
+}
+
+.cardTitle {
+    font-family: "Orbitron", monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.1em;
+}
+
+.cardDesc {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    line-height: 1.7;
+}
+
+.panel {
+    width: 100%;
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    background: rgba(0, 255, 200, 0.02);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    animation: fadeInUp 0.4s ease both;
+}
+
+.panelTitle {
+    font-family: "Orbitron", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #00ffc8;
+    letter-spacing: 0.2em;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.label {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.3em;
+}
+
+.playerOptions {
+    display: flex;
+    gap: 12px;
+}
+
+.playerOpt,
+.playerOptActive {
+    width: 56px;
+    height: 56px;
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    background: transparent;
+    font-family: "Orbitron", monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.playerOpt:hover {
+    border-color: #00ffc8;
+    color: #ffffff;
+}
+.playerOptActive {
+    border-color: #00ffc8;
+    background: rgba(0, 255, 200, 0.12);
+    color: #00ffc8;
+}
+
+.input {
+    background: rgba(0, 255, 200, 0.04);
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    color: #00ffc8;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 22px;
+    letter-spacing: 0.3em;
+    padding: 14px 20px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+.input::placeholder {
+    color: rgba(0, 255, 200, 0.2);
+}
+.input:focus {
+    border-color: #00ffc8;
+}
+
+.error {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    color: #ff4d6d;
+    letter-spacing: 0.1em;
+    animation: blink 1s ease 2;
+}
+
+.actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+}
+
+.btnPrimary,
+.btnSecondary {
+    font-family: "Orbitron", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btnPrimary {
+    background: #00ffc8;
+    color: #020408;
+}
+.btnPrimary:hover:not(:disabled) {
+    background: #ffffff;
+}
+.btnPrimary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btnSecondary {
+    background: transparent;
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+}
+.btnSecondary:hover {
+    border-color: #00ffc8;
+    color: #ffffff;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 255, 200, 0.3),
+        transparent
+    );
+    margin-top: 32px;
+}

@@ -122,3 +122,9 @@ export const checkBackendHealth = async () => {
     await api.get("/api/health");
     return true;
 };
+
+export const getPlayerById = async (playerId) => {
+    console.log("Pidiendo personaje al ID:", playerId);
+    const response = await api.get(`/api/player/${playerId}/character`);
+    return response.data;
+};

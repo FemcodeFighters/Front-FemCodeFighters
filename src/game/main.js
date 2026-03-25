@@ -1,8 +1,10 @@
+window.global = window;
 import { Boot } from "./scenes/Boot";
 import { GameOver } from "./scenes/GameOver";
 import { MainMenu } from "./scenes/MainMenu";
 import { Preloader } from "./scenes/Preloader";
 import CombatScene from "./scenes/CombatScene";
+import CoopCombatScene from "./scenes/CoopCombatScene";
 import RankingScene from "./scenes/RankingScene";
 import Phaser from "phaser";
 
@@ -30,7 +32,7 @@ const config = {
         noAudio: false,
         context: undefined,
     },
-    scene: [Boot, Preloader, MainMenu, CombatScene, GameOver, RankingScene],
+    scene: [Boot, Preloader, MainMenu, CombatScene, CoopCombatScene, GameOver, RankingScene],
 };
 
 const StartGame = (parent) => {
