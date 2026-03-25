@@ -11,7 +11,6 @@ export default class RemotePlayer extends Character {
         });
 
         this.playerId = playerId;
-
         this.body.setAllowGravity(false);
         this.body.setImmovable(true);
 
@@ -20,115 +19,96 @@ export default class RemotePlayer extends Character {
         this.body.setSize(40, 90);
         this.body.setOffset((128 - 40) / 2, 128 - 90);
 
-        this._prevX = x;
-        this._prevY = y;
         this._targetX = x;
         this._targetY = y;
-        this._targetState = CharacterState.IDLE;
+        this._prevX = x;
+        this._prevY = y;
         this._targetFacingRight = true;
         this._snapshotTime = Date.now();
-        this._interpDuration = 80;
-
-        this._label = scene.add
-            .text(x, y - 140, playerId, {
-                fontFamily: "Share Tech Mono, monospace",
-                fontSize: "13px",
-                color: "#00ffc8",
-                stroke: "#000000",
-                strokeThickness: 3,
-            })
-            .setOrigin(0.5, 1)
-            .setDepth(100);
+        this._interpDuration = 100; 
+        this._targetState = CharacterState.IDLE;
+        this._isLockAnim = false; 
     }
 
     applyServerState(serverState) {
-        const translatedY = this.scene._toClientY(serverState.y);
+    if (!this.scene) return;
 
-        this._prevX = this._targetX ?? serverState.x;
-        this._prevY = this._targetY ?? translatedY;
-        this._targetX = serverState.x;
-        this._targetY = translatedY;
-        this._targetFacingRight = serverState.facingRight;
+    const isAttacking = serverState.attacking || serverState.isAttacking || false;
+    const isUsingUltimate = serverState.usingUltimate || serverState.isUsingUltimate || false;
 
-        const wasAttacking = this._wasAttacking ?? false;
-        const wasUsingUltimate = this._wasUsingUltimate ?? false;
+    const translatedY = this.scene._toClientY(serverState.y);
+    this._snapshotTime = Date.now();
+    this._prevX = this.x;
+    this._prevY = this.y;
+    this._targetX = serverState.x;
+    this._targetY = translatedY;
+    this._targetFacingRight = serverState.facingRight;
 
-        const isAttacking = serverState.attacking;
-        const isUsingUltimate = serverState.usingUltimate;
 
-        if (isAttacking && !wasAttacking) {
-            this.canAttack = true;
-            this.attack();
-        }
+    if ((isAttacking || isUsingUltimate) && !this._isLockAnim) {
+        console.log("!!! DISPARANDO ATAQUE REMOTO !!!");
+        this._isLockAnim = true;
+        this.state = CharacterState.IDLE; 
+        this._isAttacking = false; 
 
-        if (isUsingUltimate && !wasUsingUltimate) {
+        if (isUsingUltimate) {
             this.canRanged = true;
-            this.rangedAttack();
+            this.rangedAttack(); 
+        } else {
+            this.canAttack = true;
+            this.attack(); 
         }
 
-        this._wasAttacking = isAttacking;
-        this._wasUsingUltimate = isUsingUltimate;
+        this.off('animationcomplete'); 
+        this.once('animationcomplete', () => {
+            this._isLockAnim = false;
+        });
 
-        if (isAttacking || isUsingUltimate) {
-            this._targetState = CharacterState.ATTACK;
-        } else if (serverState.jumping) {
+        this.scene.time.delayedCall(500, () => { 
+            this._isLockAnim = false; 
+        });
+    }
+    if (!this._isLockAnim) {
+        if (serverState.jumping) {
             this._targetState = CharacterState.JUMP;
-        } else if (
-            !serverState.jumping &&
-            Math.abs(serverState.velocityY) > 1
-        ) {
-            this._targetState = CharacterState.FALL;
-        } else if (
-            Math.abs(serverState.x - (this._prevX ?? serverState.x)) > 2
-        ) {
+        } else if (Math.abs(serverState.x - this._prevX) > 0.1) {
             this._targetState = CharacterState.RUN;
         } else {
             this._targetState = CharacterState.IDLE;
         }
-
-        this._snapshotTime = Date.now();
-        this.isJumping = serverState.jumping;
-        this.isFalling = serverState.falling;
     }
+}
 
     update(delta) {
-        if (!this.scene || !this.active) return;
+        if (!this.active) return;
 
-        const elapsed = Date.now() - (this._snapshotTime ?? 0);
-        const t = Math.min(1, elapsed / (this._interpDuration ?? 80));
 
-        if (this.state !== CharacterState.ATTACK) {
-            this.x = Phaser.Math.Linear(
-                this._prevX ?? this.x,
-                this._targetX ?? this.x,
-                t,
-            );
-            this.y = Phaser.Math.Linear(
-                this._prevY ?? this.y,
-                this._targetY ?? this.y,
-                t,
-            );
-        }
+        if (this.scene.input.keyboard.addKey('P').isDown) {
+        console.log("TEST: Forzando ataque visual en RemotePlayer");
+        this.canAttack = true;
+        this.attack(); 
+    }
 
-        if (this._label) {
-            this._label.setPosition(this.x, this.y - 140);
-        }
+        // 1. Interpolación (Movimiento suave)
+        const elapsed = Date.now() - this._snapshotTime;
+        const t = Math.min(1, elapsed / this._interpDuration);
+        this.x = Phaser.Math.Linear(this._prevX, this._targetX, t);
+        this.y = Phaser.Math.Linear(this._prevY, this._targetY, t);
 
-        this.facingRight = this._targetFacingRight;
+        if (this._label) this._label.setPosition(this.x, this.y - 140);
+
+        // 2. Orientación
         this.setFlipX(!this._targetFacingRight);
 
-        if (
-            this.state !== this._targetState &&
-            this.state !== CharacterState.DEAD
-        ) {
-            this.setState(this._targetState);
+        // 3. Animaciones: Solo cambiamos si NO hay un ataque en curso
+        if (!this._isLockAnim) {
+            if (this.state !== this._targetState) {
+                this.setState(this._targetState);
+            }
+            const animToPlay = this.state.toLowerCase();
+            this._playAnimation(animToPlay);
         }
 
-        this._updateState();
-        this._playAnimation(this.state.toLowerCase());
-    }
-    destroy() {
-        if (this._label) this._label.destroy();
-        super.destroy();
+        if (this._updateState) this._updateState();
     }
 }

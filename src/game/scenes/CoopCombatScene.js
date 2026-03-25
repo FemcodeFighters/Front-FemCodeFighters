@@ -107,34 +107,36 @@ export default class CoopCombatScene extends Scene {
     }
 
     async _applyServerState(state) {
-        if (!state?.players) return;
-
-        for (const [pid, pState] of Object.entries(state.players)) {
-            if (String(pid) === String(this.localPlayerId)) {
-                this._reconcileLocalPlayer(pState);
-                continue;
-            }
-            if (!this.remotePlayers.has(pid)) {
-                this._spawnRemotePlayer(pid, pState);
-            } else {
-                const rp = this.remotePlayers.get(pid);
-                if (rp && typeof rp.applyServerState === "function") {
-                    rp.applyServerState(pState);
+    if (!state?.players) return;
+    for (const [pid, pState] of Object.entries(state.players)) {
+        const playerIdStr = String(pid);
+        const localIdStr = String(this.localPlayerId);
+        if (playerIdStr === localIdStr) {
+            this._reconcileLocalPlayer(pState);
+            continue;
+        }
+        if (!this.remotePlayers.has(playerIdStr)) {
+            this._spawnRemotePlayer(playerIdStr, pState);
+        } else {
+            const rp = this.remotePlayers.get(playerIdStr);
+            if (rp) {
+                if (pState.attacking || pState.isAttacking) {
+                    console.log("!!! EL SOCKET RECIBIÓ ATAQUE PARA:", playerIdStr, pState);
                 }
+                rp.applyServerState(pState);
             }
         }
-
-        this.remotePlayers.forEach((rp, pid) => {
-            if (!state.players[pid]) {
-                if (rp && typeof rp.destroy === "function") rp.destroy();
-                this.remotePlayers.delete(pid);
-            }
-        });
-
-        if (state.enemy) this._applyEnemyState(state.enemy);
-        if (state.phase === "WIN") this._onCombatEnd("player");
-        if (state.phase === "LOSE") this._onCombatEnd("enemy");
     }
+    this.remotePlayers.forEach((rp, pid) => {
+        if (!state.players[pid]) {
+            if (rp.destroy) rp.destroy();
+            this.remotePlayers.delete(pid);
+        }
+    });
+    if (state.enemy) this._applyEnemyState(state.enemy);
+    if (state.phase === "WIN") this._onCombatEnd("player");
+    if (state.phase === "LOSE") this._onCombatEnd("enemy");
+}
 
     _reconcileLocalPlayer(serverState) {
         if (!this.localPlayer) return;
@@ -170,38 +172,36 @@ export default class CoopCombatScene extends Scene {
     }
 
     async _spawnRemotePlayer(playerId, pState) {
-        const textureKey = `player_${playerId}`;
+    const playerIdStr = String(playerId); // Normalizar
+    const textureKey = `player_${playerIdStr}`;
 
-        if (
-            this.remotePlayers.has(playerId) ||
-            this._loadingPlayers.has(playerId)
-        )
-            return;
-        this._loadingPlayers.add(playerId);
+    if (this.remotePlayers.has(playerIdStr) || this._loadingPlayers.has(playerIdStr)) return;
+    this._loadingPlayers.add(playerIdStr);
 
-        try {
-            const idNumerico = parseInt(playerId, 10);
-            const characterData = await getPlayerById(idNumerico);
-            await this._ensurePlayerTexture(characterData, textureKey);
-        } catch (e) {
-            console.error(`Error cargando skin para ID ${playerId}:`, e);
-            this._createFallbackTexture(textureKey);
-        }
-
-        this._loadingPlayers.delete(playerId);
-
-        if (this.remotePlayers.has(playerId)) return;
-
-        const rp = new RemotePlayer(
-            this,
-            pState.x ?? 500,
-            this._toClientY(pState.y ?? 1000),
-            textureKey,
-            playerId,
-        );
-        this.remotePlayers.set(playerId, rp);
-        this.physics.add.collider(rp, this.platforms);
+    try {
+        const idNumerico = parseInt(playerIdStr, 10);
+        const characterData = await getPlayerById(idNumerico);
+        await this._ensurePlayerTexture(characterData, textureKey);
+    } catch (e) {
+        console.error(`Error cargando skin para ID ${playerIdStr}:`, e);
+        this._createFallbackTexture(textureKey);
     }
+
+    this._loadingPlayers.delete(playerIdStr);
+
+    if (this.remotePlayers.has(playerIdStr)) return;
+
+    const rp = new RemotePlayer(
+        this,
+        pState.x ?? 500,
+        this._toClientY(pState.y ?? 1000),
+        textureKey,
+        playerIdStr // Pasar como string
+    );
+    
+    this.remotePlayers.set(playerIdStr, rp);
+    this.physics.add.collider(rp, this.platforms);
+}
 
     _createFallbackTexture(key) {
         if (this.textures.exists(key)) return;
