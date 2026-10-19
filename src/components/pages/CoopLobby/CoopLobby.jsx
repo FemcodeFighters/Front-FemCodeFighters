@@ -31,7 +31,20 @@ export default function CoopLobby({ playerId, onRoomReady, onBack }) {
             await joinRoom(roomCode.toUpperCase(), playerId);
             onRoomReady(roomCode.toUpperCase(), false);
         } catch (e) {
-            setError("Sala no encontrada o ya ha empezado.");
+            const status = e.response?.status;
+            console.error("Join room error:", status, e.response?.data, e.message);
+
+            if (!e.response) {
+                setError("No se pudo contactar con el servidor (¿está encendido? ¿CORS?).");
+            } else if (status === 404) {
+                setError("Sala no encontrada.");
+            } else if (status === 400) {
+                setError(e.response.data?.message || "La sala está llena o ya ha empezado.");
+            } else if (status === 401) {
+                setError("Sesión expirada. Vuelve a iniciar sesión.");
+            } else {
+                setError(`Error del servidor (${status}). Revisa la consola del backend.`);
+            }
         } finally {
             setLoading(false);
         }

@@ -4,14 +4,15 @@ import { mask, unmask } from "../../game/utils/Security";
 
 export default class Player extends Character {
     #ultimateEnergy;
-    constructor(scene, x, y) {
+    constructor(scene, x, y, textureKey = "player_custom") {
         const characterData = scene.registry.get("character") || {};
         const stats = characterData.stats || {
             hp: 100,
             speed: 200,
             attack: 15,
         };
-        super(scene, x, y, "player_custom", {
+
+        super(scene, x, y, textureKey, {
             maxHP: stats.hp,
             speed: stats.speed,
             jumpForce: -720,
@@ -155,9 +156,9 @@ export default class Player extends Character {
     _executeSpaghettiRain() {
         if (!this.scene || !this.active) return;
         const config = this.scene.registry.get("ultimateConfig");
-        const tickDamage = config?.tickDamage ?? 5;
-        const tickCount = config?.tickCount ?? 12;
-        const tickIntervalMs = config?.tickIntervalMs ?? 400;
+        const tickDamage = config?.tickDamage || 5;
+        const tickCount = config?.tickCount || 12;
+        const tickIntervalMs = config?.tickIntervalMs || 400;
 
         const { width, height } = this.scene.scale;
 
@@ -305,7 +306,7 @@ export default class Player extends Character {
                     if (!this.scene || !this.active) return;
                     const enemy = this.scene.enemy;
                     if (!enemy || !enemy.active || !enemy.body) return;
-                    enemy.takeDamage(tickDamage, this);
+                    if (!this.scene.isCoop) enemy.takeDamage(tickDamage, this);
                     this.scene.cameras.main.shake(80, 0.004);
 
                     if (enemy.active) enemy.setTint(0xf7df1e);
@@ -429,7 +430,7 @@ export default class Player extends Character {
 
                     trail.emitting = false;
 
-                    if (this.scene.enemy?.active) {
+                    if (!this.scene.isCoop && this.scene.enemy?.active) {
                         this.scene.enemy.takeDamage(cloneDamage, this);
                     }
 
@@ -497,8 +498,8 @@ export default class Player extends Character {
     _executeFridayDeploy() {
         if (!this.scene || !this.active) return;
         const config = this.scene.registry.get("ultimateConfig");
-        const healAmount = config?.healAmount ?? 30;
-        const invincibilityMs = config?.invincibilityMs ?? 3000;
+        const healAmount = config?.healAmount || 30;
+        const invincibilityMs = config?.invincibilityMs || 3000;
         const { width, height } = this.scene.scale;
         const CHARS = "01ABCDEFabcdef{}[]<>/=;:#@!~|$%*";
         const GREEN = "#00ff41";
@@ -612,10 +613,10 @@ export default class Player extends Character {
 
         this.scene.time.delayedCall(600, () => {
             if (!this.scene || !this.active) return;
-            this.hp = Math.min(this.maxHP, this.hp + healAmount);
-
+            if (!this.scene.isCoop)
+                this.hp = Math.min(this.maxHP, this.hp + healAmount);
             const healText = this.scene.add
-                .text(this.x, this.y - 80, `+${healAmount} HP`, {
+                .text(this.x, this.y - 80, this.scene.isCoop ? "" : `+${healAmount} HP`, {
                     fontFamily: "Orbitron",
                     fontSize: "28px",
                     fill: GREEN,
@@ -646,8 +647,8 @@ export default class Player extends Character {
             });
 
             this.setTint(0x00ffc8);
-            this.isInvincible = config?.grantsInvincibility ?? true;
-
+            if (!this.scene.isCoop)
+                this.isInvincible = config?.grantsInvincibility ?? true;
             const blinkTimer = this.scene.time.addEvent({
                 delay: 200,
                 loop: true,

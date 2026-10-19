@@ -11,6 +11,7 @@ export default class RemotePlayer extends Character {
         });
 
         this.playerId = playerId;
+        this.ultimateSkill = "FRIDAY_DEPLOY";
         this.body.setAllowGravity(false);
         this.body.setImmovable(true);
         this.setOrigin(0.5, 1.0);
@@ -33,6 +34,15 @@ export default class RemotePlayer extends Character {
 
     applyServerState(serverState) {
         if (!this.scene) return;
+        if (serverState.alive === false && this.state !== CharacterState.DEAD) {
+            this.setState(CharacterState.DEAD);
+            this.scene.tweens.add({ targets: this, alpha: 0.3, duration: 300 });
+            return;
+        }
+        if (serverState.alive === true && this.state === CharacterState.DEAD) {
+            this.setState(CharacterState.IDLE);
+            this.setAlpha(1);
+        }
 
         const translatedY = this.scene._toClientY(serverState.y);
         this._snapshotTime = Date.now();
@@ -71,29 +81,29 @@ export default class RemotePlayer extends Character {
     _triggerAttackAnim(isUltimate) {
         this._isLockAnim = true;
         this._pendingAction = null;
+
         if (isUltimate) {
-            this.canRanged = true;
-            this.rangedAttack();
+            this.emit("ultimateCast", this.ultimateSkill);
         } else {
-            this.canAttack = true;
-            this.attack();
+            const dir = this._targetFacingRight ? 1 : -1;
+            this.setTint(0xffffff);
+            this.scene.tweens.add({
+                targets: this,
+                scaleX: this.originalScaleX * dir * 1.15,
+                scaleY: this.originalScaleY * 0.9,
+                duration: 120,
+                yoyo: true,
+                onComplete: () => this.clearTint(),
+            });
         }
-        const onComplete = () => {
+
+        const lockDuration = isUltimate ? 900 : 400;
+        this.scene.time.delayedCall(lockDuration, () => {
+            if (!this.scene) return;
             this._isLockAnim = false;
             if (this._pendingAction) {
                 const wasUltimate = this._pendingAction === "ultimate";
                 this._triggerAttackAnim(wasUltimate);
-            }
-        };
-        this.once("animationcomplete", onComplete);
-        this.scene.time.delayedCall(600, () => {
-            if (this._isLockAnim) {
-                this._isLockAnim = false;
-                this.off("animationcomplete", onComplete);
-                if (this._pendingAction) {
-                    const wasUltimate = this._pendingAction === "ultimate";
-                    this._triggerAttackAnim(wasUltimate);
-                }
             }
         });
     }

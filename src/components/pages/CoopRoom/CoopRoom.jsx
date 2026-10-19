@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from "react";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
+import { useEffect, useState } from "react";
 import { getRoomState, startCoopGame } from "../../../service/coopApi";
+import { connectToRoom, disconnectFromRoom } from "../../../service/coopSocket";
 import styles from "./CoopRoom.module.css";
 import BackButton from "../../atoms/BackButton/BackButton";
 
@@ -15,42 +14,18 @@ export default function CoopRoom({
     const [roomState, setRoomState] = useState(null);
     const [connected, setConnected] = useState(false);
     const [starting, setStarting] = useState(false);
-    const stompRef = useRef(null);
 
     useEffect(() => {
         getRoomState(roomId).then(setRoomState).catch(console.error);
     }, [roomId]);
 
     useEffect(() => {
-        if (roomState?.phase !== "WAITING" && roomState !== null) return;
-
-        const interval = setInterval(() => {
-            getRoomState(roomId).then(setRoomState).catch(console.error);
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, [roomId, roomState?.phase]);
-
-    useEffect(() => {
-        const client = new Client({
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws-game"),
-            onConnect: () => {
-                setConnected(true);
-                client.subscribe(`/topic/game/${roomId}`, (msg) => {
-                    const state = JSON.parse(msg.body);
-                    setRoomState(state);
-                    if (state.phase === "PLAYING") {
-                        onGameStart(roomId);
-                    }
-                });
-            },
-            onDisconnect: () => setConnected(false),
+        connectToRoom(roomId, (state) => {
+            setRoomState(state);
+            setConnected(true);
+            if (state.phase === "PLAYING") onGameStart(roomId);
         });
-
-        client.activate();
-        stompRef.current = client;
-
-        return () => client.deactivate();
+        return () => disconnectFromRoom();
     }, [roomId, onGameStart]);
 
     const handleStart = async () => {
