@@ -148,6 +148,18 @@ export default class CoopCombatScene extends Scene {
     _reconcileLocalPlayer(serverState) {
         if (!this.localPlayer) return;
 
+        const ultimateCount = serverState.ultimateCount ?? 0;
+       if (
+           this._lastUltimateCount !== undefined &&
+           ultimateCount > this._lastUltimateCount
+       ) {
+           this._onUltimateConfirmed(
+               this.localPlayer,
+               this.localPlayer.selectedUltimate,
+           );
+       }
+       this._lastUltimateCount = ultimateCount;
+
         if (this._lastDamageDealt !== undefined) {
             const newDamage =
                 (serverState.damageDealt ?? 0) - this._lastDamageDealt;
@@ -222,10 +234,11 @@ export default class CoopCombatScene extends Scene {
                 characterData?.ultimate_skill ??
                 "FRIDAY_DEPLOY",
         ).toUpperCase();
-        rp.on("ultimateCast", (skill) => {
+        /*rp.on("ultimateCast", (skill) => {
             this._playUltimateEffect(rp, skill);
             this._onUltimateConfirmed(rp, skill);
-        });
+        });*/
+        rp.on("ultimateCast", (skill) => this._onUltimateConfirmed(rp, skill));
         this.remotePlayers.set(playerIdStr, rp);
         this.physics.add.collider(rp, this.platforms);
     }
@@ -290,17 +303,7 @@ export default class CoopCombatScene extends Scene {
 
     _captureAndSendInput() {
         if (!this.localPlayer) return;
-        const ultimateCount = serverState.ultimateCount ?? 0;
-        if (
-            this._lastUltimateCount !== undefined &&
-            ultimateCount > this._lastUltimateCount
-        ) {
-            this._onUltimateConfirmed(
-                this.localPlayer,
-                this.localPlayer.selectedUltimate,
-            );
-        }
-        this._lastUltimateCount = ultimateCount;
+        
         const p = this.localPlayer;
         const { cursors, keys } = p;
 
@@ -343,14 +346,13 @@ export default class CoopCombatScene extends Scene {
         ) {
             action = "ULTIMATE";
             p.useUltimate();
-            this._playUltimateEffect(p, p.selectedUltimate);
+            /*this._playUltimateEffect(p, p.selectedUltimate);*/
             this._ultimateLockUntil = this.time.now + 6000;
         }
         this._sendInput(action);
     }
 
     _playUltimateEffect(caster, skill) {
-    if (caster === this.localPlayer) return;
     const effects = {
         FRIDAY_DEPLOY: Player.prototype._executeFridayDeploy,
         SPAGHETTI_CODE: Player.prototype._executeSpaghettiRain,
@@ -396,11 +398,22 @@ export default class CoopCombatScene extends Scene {
 }
 
 _onUltimateConfirmed(caster, skill) {
-    const failed =
-        skill === "FRIDAY_DEPLOY" &&
-        this.getUltimateOutcome(caster) === "DEPLOY_FAIL";
-    if (failed && caster.active) {
-        this._floatText(caster, "¡DEPLOY FALLIDO!", "#ff3355");
+    this._playUltimateEffect(caster, skill);
+
+    if (skill === "FRIDAY_DEPLOY") {
+        const failed = this.getUltimateOutcome(caster) === "DEPLOY_FAIL";
+        if (failed && caster.active) {
+            this._floatText(caster, "¡DEPLOY FALLIDO!", "#ff3355", 0, -40);
+        }
+    }
+
+    if (skill === "GIT_CLONE") {
+        this.time.delayedCall(650, () => {
+            const target = this.getCloneTarget(caster);
+            if (target && target !== this.enemy && target.active) {
+                this._floatText(target, "¡FUEGO AMIGO!", "#ff3355", 0, -40);
+            }
+        });
     }
 }
 
@@ -421,9 +434,9 @@ _trackHealth(playerId, health, sprite) {
     this.time.delayedCall(300, () => sprite.active && sprite.clearTint());
 }
 
-_floatText(sprite, text, color, offsetX = 0) {
+_floatText(sprite, text, color, offsetX = 0, offsetY = 0) {
     const label = this.add
-        .text(sprite.x + offsetX, sprite.y - 80, text, {
+        .text(sprite.x + offsetX, sprite.y - 80 + offsetY, text, {
             fontFamily: "Orbitron",
             fontSize: "22px",
             fill: color,
@@ -654,4 +667,15 @@ _floatText(sprite, text, color, offsetX = 0) {
         const floorY = this.scale.height - 30;
         return (clientY / floorY) * 1000;
     }
+
+    getCloneTarget(caster) {
+    const outcome = this.getUltimateOutcome(caster);
+    if (outcome?.startsWith("CLONE_ALLY:")) {
+        const victimId = outcome.split(":")[1];
+        return victimId === String(this.localPlayerId)
+            ? this.localPlayer
+            : this.remotePlayers.get(victimId);
+    }
+    return this.enemy;
+}
 }

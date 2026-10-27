@@ -124,7 +124,7 @@ export default class Player extends Character {
         this.energy = 0;
         this._syncWithReact();
         this.scene.cameras.main.shake(300, 0.02);
-        this._executeUltimateLogic();
+        if (!this.scene.isCoop) this._executeUltimateLogic();
         EventBus.emit("player-ultimate-executed", {
             type: this.selectedUltimate,
         });
@@ -363,9 +363,11 @@ export default class Player extends Character {
         const config = this.scene.registry.get("ultimateConfig");
         const cloneDamage = config?.cloneDamage ?? 35;
         const dir = this.facingRight ? 1 : -1;
-        const targetX = this.scene.enemy?.active
-            ? this.scene.enemy.x
-            : this.x + dir * 300;
+        const resolveTargetX = () => {
+            const target =
+                this.scene.getCloneTarget?.(this) ?? this.scene.enemy;
+            return target?.active ? target.x : this.x + dir * 300;
+        };
 
         const clone = this.scene.add
             .sprite(this.x, this.y, this.texture.key)
@@ -419,7 +421,7 @@ export default class Player extends Character {
 
             this.scene.tweens.add({
                 targets: clone,
-                x: targetX,
+                x: resolveTargetX(),
                 duration: 280,
                 ease: "Power3.out",
                 onUpdate: () => {
@@ -502,18 +504,34 @@ export default class Player extends Character {
         const invincibilityMs = config?.invincibilityMs || 3000;
         const { width, height } = this.scene.scale;
         const CHARS = "01ABCDEFabcdef{}[]<>/=;:#@!~|$%*";
-        const GREEN = "#00ff41";
 
-        const lines = [
-            "> git push origin main",
-            "> deploying to production...",
-            "> build: SUCCESS",
-            "> tests: SKIPPED (it's friday)",
-            "> upload: 100% ████████████",
-            "> DEPLOY COMPLETE — good luck",
-            "> servidor: online",
-            "> rollback: disabled (yolo)",
-        ];
+        // En coop el servidor decide si el deploy sale bien; si falla, todo en rojo
+        const failed = this.scene.getUltimateOutcome?.(this) === "DEPLOY_FAIL";
+        const MAIN_HEX = failed ? 0xff3355 : 0x00ff41;
+        const ALT_HEX = failed ? 0xff7788 : 0x00ffc8;
+        const MAIN_CSS = failed ? "#ff3355" : "#00ff41";
+
+        const lines = failed
+            ? [
+                  "> git push origin main",
+                  "> deploying to production...",
+                  "> build: FAILED",
+                  "> tests: SKIPPED (it's friday)",
+                  "> upload: 100% ████████████",
+                  "> ERROR 500 — DEPLOY FAILED",
+                  "> servidor: caído",
+                  "> rollback: disabled (yolo)",
+              ]
+            : [
+                  "> git push origin main",
+                  "> deploying to production...",
+                  "> build: SUCCESS",
+                  "> tests: SKIPPED (it's friday)",
+                  "> upload: 100% ████████████",
+                  "> DEPLOY COMPLETE — good luck",
+                  "> servidor: online",
+                  "> rollback: disabled (yolo)",
+              ];
 
         const terminalTexts = [];
         lines.forEach((line, i) => {
@@ -521,7 +539,7 @@ export default class Player extends Character {
                 .text(40, height - 80 - i * 22, line, {
                     fontFamily: "Share Tech Mono, monospace",
                     fontSize: "13px",
-                    color: i === lines.length - 1 ? "#ffffff" : GREEN,
+                    color: i === lines.length - 1 ? "#ffffff" : MAIN_CSS,
                     alpha: 0,
                 })
                 .setDepth(3000)
@@ -538,11 +556,11 @@ export default class Player extends Character {
         });
 
         const overlay = this.scene.add
-            .rectangle(width / 2, height / 2, width, height, 0x00ff41, 0.06)
+            .rectangle(width / 2, height / 2, width, height, MAIN_HEX, 0.06)
             .setDepth(2999);
 
         const scanline = this.scene.add
-            .rectangle(width / 2, 0, width, 3, 0x00ff41, 0.4)
+            .rectangle(width / 2, 0, width, 3, MAIN_HEX, 0.4)
             .setDepth(3001);
 
         this.scene.tweens.add({
@@ -553,9 +571,10 @@ export default class Player extends Character {
             onComplete: () => scanline.destroy(),
         });
 
+        // Textura blanca: el color final lo pone el tint de las partículas
         if (!this.scene.textures.exists("deploy_particle")) {
             const g = this.scene.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0x00ff41, 1);
+            g.fillStyle(0xffffff, 1);
             g.fillRect(0, 0, 8, 2);
             g.generateTexture("deploy_particle", 8, 2);
             g.destroy();
@@ -567,14 +586,14 @@ export default class Player extends Character {
                 speedX: { min: -30, max: 30 },
                 scale: { start: 1, end: 0 },
                 alpha: { start: 0.9, end: 0 },
-                tint: [0x00ff41, 0x00ffc8, 0xffffff],
+                tint: [MAIN_HEX, ALT_HEX, 0xffffff],
                 lifespan: 800,
                 quantity: 4,
                 frequency: 30,
             })
             .setDepth(3000);
         uploadStream.startFollow(this);
-        const floatingChars = [];
+
         for (let i = 0; i < 12; i++) {
             const angle = (i / 12) * Math.PI * 2;
             const radius = Phaser.Math.Between(40, 80);
@@ -584,7 +603,7 @@ export default class Player extends Character {
                 .text(cx, cy, CHARS[Phaser.Math.Between(0, CHARS.length - 1)], {
                     fontFamily: "monospace",
                     fontSize: "12px",
-                    color: GREEN,
+                    color: MAIN_CSS,
                 })
                 .setOrigin(0.5)
                 .setAlpha(0)
@@ -606,23 +625,35 @@ export default class Player extends Character {
                     });
                 },
             });
-            floatingChars.push(fc);
         }
 
-        this.scene.cameras.main.flash(400, 0, 255, 65, false);
+        this.scene.cameras.main.flash(
+            400,
+            failed ? 255 : 0,
+            failed ? 51 : 255,
+            failed ? 85 : 65,
+            false,
+        );
 
         this.scene.time.delayedCall(600, () => {
             if (!this.scene || !this.active) return;
             if (!this.scene.isCoop)
                 this.hp = Math.min(this.maxHP, this.hp + healAmount);
+
+            // En coop este texto lo dibuja la escena según el daño o la cura reales
             const healText = this.scene.add
-                .text(this.x, this.y - 80, this.scene.isCoop ? "" : `+${healAmount} HP`, {
-                    fontFamily: "Orbitron",
-                    fontSize: "28px",
-                    fill: GREEN,
-                    stroke: "#000000",
-                    strokeThickness: 6,
-                })
+                .text(
+                    this.x,
+                    this.y - 80,
+                    this.scene.isCoop ? "" : `+${healAmount} HP`,
+                    {
+                        fontFamily: "Orbitron",
+                        fontSize: "28px",
+                        fill: MAIN_CSS,
+                        stroke: "#000000",
+                        strokeThickness: 6,
+                    },
+                )
                 .setOrigin(0.5)
                 .setDepth(3000)
                 .setAlpha(0);
@@ -646,16 +677,17 @@ export default class Player extends Character {
                 },
             });
 
-            this.setTint(0x00ffc8);
+            this.setTint(ALT_HEX);
             if (!this.scene.isCoop)
                 this.isInvincible = config?.grantsInvincibility ?? true;
+
             const blinkTimer = this.scene.time.addEvent({
                 delay: 200,
                 loop: true,
                 callback: () => {
                     if (!this.active) return;
                     this.setTint(
-                        this.tintTopLeft === 0x00ffc8 ? 0x00ff41 : 0x00ffc8,
+                        this.tintTopLeft === ALT_HEX ? MAIN_HEX : ALT_HEX,
                     );
                 },
             });

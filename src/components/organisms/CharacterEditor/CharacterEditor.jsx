@@ -11,21 +11,21 @@ const ULTIMATE_INFO = {
     FRIDAY_DEPLOY: {
         name: "FRIDAY DEPLOY",
         description:
-            "Despliegue arriesgado en viernes. Te vuelve invulnerable temporalmente y regeneras 30 HP de código base.",
-        stats: "HEAL: +30 | INVULNERABLE: 0.5s",
+            "Despliegue arriesgado en viernes. Te vuelve invulnerable temporalmente y regeneras 30 HP de código base. Puede fallar y retrasar el proyecto.",
+        stats: "HEAL: +30 o -30 | INVULNERABLE: 0.5s",
         color: "#00ffc8",
     },
     SPAGHETTI_CODE: {
         name: "SPAGHETTI CODE",
         description:
-            "Lanzas una maraña de código sin documentar que enreda a los enemigos, causando daño por cada tick.",
-        stats: "DAMAGE: 5/tick | DURATION: 5s",
+            "Lanzas una maraña de código sin documentar que enreda a los enemigos, causando daño por cada tick. Si el proyecto es grupal daña a tus compañeras",
+        stats: "DAMAGE: 5/tick | -1 para aliadas | DURATION: 5s",
         color: "#f59e0b",
     },
     GIT_CLONE: {
         name: "GIT CLONE",
         description:
-            "Creas una instancia duplicada que embiste a toda velocidad infligiendo 30 de daño masivo.",
+            "Creas una instancia duplicada que embiste a toda velocidad infligiendo 30 de daño masivo. Si fallas el comando puede dañar a una aliada",
         stats: "DAMAGE: 30 | CLONE_LIFE: 6s",
         color: "#3b82f6",
     },
