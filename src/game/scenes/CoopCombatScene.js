@@ -14,6 +14,7 @@ import {
     sendInput,
     disconnectFromRoom,
 } from "../../service/coopSocket";
+import { CharacterState } from "../characters/Character";
 
 export default class CoopCombatScene extends Scene {
     constructor() {
@@ -45,6 +46,8 @@ export default class CoopCombatScene extends Scene {
         this._lastHealth = new Map();
         this.ultimateOutcomes = {};
         this._lastUltimateCount = undefined;
+        this._alliesSnapshot = null;
+        this._localDead = false;
     }
 
     async create() {
@@ -141,6 +144,7 @@ export default class CoopCombatScene extends Scene {
             }
         });
         if (state.enemy) this._applyEnemyState(state.enemy);
+        this._emitAlliesHealth(state);
         if (state.phase === "WIN") this._onCombatEnd("player");
         if (state.phase === "LOSE") this._onCombatEnd("enemy");
     }
@@ -149,16 +153,16 @@ export default class CoopCombatScene extends Scene {
         if (!this.localPlayer) return;
 
         const ultimateCount = serverState.ultimateCount ?? 0;
-       if (
-           this._lastUltimateCount !== undefined &&
-           ultimateCount > this._lastUltimateCount
-       ) {
-           this._onUltimateConfirmed(
-               this.localPlayer,
-               this.localPlayer.selectedUltimate,
-           );
-       }
-       this._lastUltimateCount = ultimateCount;
+        if (
+            this._lastUltimateCount !== undefined &&
+            ultimateCount > this._lastUltimateCount
+        ) {
+            this._onUltimateConfirmed(
+                this.localPlayer,
+                this.localPlayer.selectedUltimate,
+            );
+        }
+        this._lastUltimateCount = ultimateCount;
 
         if (this._lastDamageDealt !== undefined) {
             const newDamage =
@@ -201,6 +205,17 @@ export default class CoopCombatScene extends Scene {
         ) {
             this.localPlayer.hp = serverState.health;
         }
+
+        // El servidor dice que has muerto: igual que con las aliadas, el sprite se difumina
+        if (serverState.alive === false && !this._localDead) {
+            this._localDead = true;
+            this.localPlayer.setState(CharacterState.DEAD);
+            this.tweens.add({
+                targets: this.localPlayer,
+                alpha: 0.3,
+                duration: 300,
+            });
+        }
     }
 
     async _spawnRemotePlayer(playerId, pState) {
@@ -234,10 +249,11 @@ export default class CoopCombatScene extends Scene {
                 characterData?.ultimate_skill ??
                 "FRIDAY_DEPLOY",
         ).toUpperCase();
-        /*rp.on("ultimateCast", (skill) => {
-            this._playUltimateEffect(rp, skill);
-            this._onUltimateConfirmed(rp, skill);
-        });*/
+
+        rp.displayName = String(
+            characterData?.username ?? `JUGADORA ${playerIdStr}`,
+        ).toUpperCase();
+
         rp.on("ultimateCast", (skill) => this._onUltimateConfirmed(rp, skill));
         this.remotePlayers.set(playerIdStr, rp);
         this.physics.add.collider(rp, this.platforms);
@@ -302,8 +318,7 @@ export default class CoopCombatScene extends Scene {
     }
 
     _captureAndSendInput() {
-        if (!this.localPlayer) return;
-        
+        if (!this.localPlayer || this._localDead) return;
         const p = this.localPlayer;
         const { cursors, keys } = p;
 
@@ -353,14 +368,14 @@ export default class CoopCombatScene extends Scene {
     }
 
     _playUltimateEffect(caster, skill) {
-    const effects = {
-        FRIDAY_DEPLOY: Player.prototype._executeFridayDeploy,
-        SPAGHETTI_CODE: Player.prototype._executeSpaghettiRain,
-        GIT_CLONE: Player.prototype._executeGitClone,
-    };
-    effects[skill]?.call(caster);
-}
-/*
+        const effects = {
+            FRIDAY_DEPLOY: Player.prototype._executeFridayDeploy,
+            SPAGHETTI_CODE: Player.prototype._executeSpaghettiRain,
+            GIT_CLONE: Player.prototype._executeGitClone,
+        };
+        effects[skill]?.call(caster);
+    }
+    /*
     _showHealEffect(sprite) {
         const amount = this.registry.get("ultimateConfig")?.healAmount || 30;
         this.time.delayedCall(600, () => {
@@ -391,69 +406,87 @@ export default class CoopCombatScene extends Scene {
         });
     }*/
 
-        getUltimateOutcome(caster) {
-    const id =
-        caster === this.localPlayer ? this.localPlayerId : caster?.playerId;
-    return this.ultimateOutcomes?.[String(id)] ?? null;
-}
+    getUltimateOutcome(caster) {
+        const id =
+            caster === this.localPlayer ? this.localPlayerId : caster?.playerId;
+        return this.ultimateOutcomes?.[String(id)] ?? null;
+    }
 
-_onUltimateConfirmed(caster, skill) {
-    this._playUltimateEffect(caster, skill);
+    _onUltimateConfirmed(caster, skill) {
+        this._playUltimateEffect(caster, skill);
 
-    if (skill === "FRIDAY_DEPLOY") {
-        const failed = this.getUltimateOutcome(caster) === "DEPLOY_FAIL";
-        if (failed && caster.active) {
-            this._floatText(caster, "¡DEPLOY FALLIDO!", "#ff3355", 0, -40);
+        if (skill === "FRIDAY_DEPLOY") {
+            const failed = this.getUltimateOutcome(caster) === "DEPLOY_FAIL";
+            if (failed && caster.active) {
+                this._floatText(caster, "¡DEPLOY FALLIDO!", "#ff3355", 0, -40);
+            }
+        }
+
+        if (skill === "GIT_CLONE") {
+            this.time.delayedCall(650, () => {
+                const target = this.getCloneTarget(caster);
+                if (target && target !== this.enemy && target.active) {
+                    this._floatText(target, "¡FUEGO AMIGO!", "#ff3355", 0, -40);
+                }
+            });
         }
     }
 
-    if (skill === "GIT_CLONE") {
-        this.time.delayedCall(650, () => {
-            const target = this.getCloneTarget(caster);
-            if (target && target !== this.enemy && target.active) {
-                this._floatText(target, "¡FUEGO AMIGO!", "#ff3355", 0, -40);
-            }
+    // Números flotantes según la vida real que dice el servidor (cura o daño)
+    _trackHealth(playerId, health, sprite) {
+        const previous = this._lastHealth.get(playerId);
+        this._lastHealth.set(playerId, health);
+        if (previous === undefined || health === previous || !sprite?.active)
+            return;
+        const gained = health > previous;
+        this._floatText(
+            sprite,
+            `${gained ? "+" : "-"}${Math.abs(health - previous)}`,
+            gained ? "#00ff41" : "#ff3355",
+            Phaser.Math.Between(-15, 15),
+        );
+        sprite.setTint(gained ? 0x00ff41 : 0xff3355);
+        this.time.delayedCall(300, () => sprite.active && sprite.clearTint());
+    }
+
+    // Avisa al HUD de React de la vida de las aliadas, solo cuando algo cambia
+    _emitAlliesHealth(state) {
+        const allies = Object.entries(state.players)
+            .filter(([pid]) => String(pid) !== String(this.localPlayerId))
+            .map(([pid, p]) => ({
+                id: String(pid),
+                name:
+                    this.remotePlayers.get(String(pid))?.displayName ??
+                    `JUGADORA ${pid}`,
+                hp: p.health,
+                max: p.maxHealth,
+            }));
+        const snapshot = JSON.stringify(allies);
+        if (snapshot === this._alliesSnapshot) return;
+        this._alliesSnapshot = snapshot;
+        console.log("ESCENA envía aliadas:", allies);
+        EventBus.emit("allies-health", allies);
+    }
+    _floatText(sprite, text, color, offsetX = 0, offsetY = 0) {
+        const label = this.add
+            .text(sprite.x + offsetX, sprite.y - 80 + offsetY, text, {
+                fontFamily: "Orbitron",
+                fontSize: "22px",
+                fill: color,
+                stroke: "#000000",
+                strokeThickness: 5,
+            })
+            .setOrigin(0.5)
+            .setDepth(3000);
+        this.tweens.add({
+            targets: label,
+            y: label.y - 60,
+            alpha: 0,
+            duration: 1200,
+            ease: "Power2.out",
+            onComplete: () => label.destroy(),
         });
     }
-}
-
-// Números flotantes según la vida real que dice el servidor (cura o daño)
-_trackHealth(playerId, health, sprite) {
-    const previous = this._lastHealth.get(playerId);
-    this._lastHealth.set(playerId, health);
-    if (previous === undefined || health === previous || !sprite?.active)
-        return;
-    const gained = health > previous;
-    this._floatText(
-        sprite,
-        `${gained ? "+" : "-"}${Math.abs(health - previous)}`,
-        gained ? "#00ff41" : "#ff3355",
-        Phaser.Math.Between(-15, 15),
-    );
-    sprite.setTint(gained ? 0x00ff41 : 0xff3355);
-    this.time.delayedCall(300, () => sprite.active && sprite.clearTint());
-}
-
-_floatText(sprite, text, color, offsetX = 0, offsetY = 0) {
-    const label = this.add
-        .text(sprite.x + offsetX, sprite.y - 80 + offsetY, text, {
-            fontFamily: "Orbitron",
-            fontSize: "22px",
-            fill: color,
-            stroke: "#000000",
-            strokeThickness: 5,
-        })
-        .setOrigin(0.5)
-        .setDepth(3000);
-    this.tweens.add({
-        targets: label,
-        y: label.y - 60,
-        alpha: 0,
-        duration: 1200,
-        ease: "Power2.out",
-        onComplete: () => label.destroy(),
-    });
-}
 
     _spawnEnemy() {
         const { width, height } = this.scale;
@@ -495,10 +528,11 @@ _floatText(sprite, text, color, offsetX = 0, offsetY = 0) {
         if (this.combatFinished) return;
         this.combatFinished = true;
         this.physics.pause();
-        EventBus.emit("combat-result", { winner });
+        EventBus.emit("combat-result", { winner, coop: true });
     }
 
     _cleanup() {
+        EventBus.emit("allies-health", []);
         disconnectFromRoom();
         if (this.stompClient) {
             this.stompClient.deactivate();
@@ -669,13 +703,13 @@ _floatText(sprite, text, color, offsetX = 0, offsetY = 0) {
     }
 
     getCloneTarget(caster) {
-    const outcome = this.getUltimateOutcome(caster);
-    if (outcome?.startsWith("CLONE_ALLY:")) {
-        const victimId = outcome.split(":")[1];
-        return victimId === String(this.localPlayerId)
-            ? this.localPlayer
-            : this.remotePlayers.get(victimId);
+        const outcome = this.getUltimateOutcome(caster);
+        if (outcome?.startsWith("CLONE_ALLY:")) {
+            const victimId = outcome.split(":")[1];
+            return victimId === String(this.localPlayerId)
+                ? this.localPlayer
+                : this.remotePlayers.get(victimId);
+        }
+        return this.enemy;
     }
-    return this.enemy;
-}
 }

@@ -21,6 +21,8 @@ import CombatPopUp from "./components/molecules/CombatPopUp/CombatPopUp";
 import CoopLobby from "./components/pages/CoopLobby/CoopLobby";
 import CoopRoom from "./components/pages/CoopRoom/CoopRoom";
 
+window.__EventBus = EventBus;
+
 function Bar({ value, max, color, label }) {
     const safeValue = value ?? 0;
     const safeMax = max || 100;
@@ -142,6 +144,7 @@ function CombatHUD({
     enemyUltimate,
     playerName,
     enemyName,
+    allies = [],
 }) {
     return (
         <div className={styles.hud}>
@@ -169,6 +172,19 @@ function CombatHUD({
                         color="#00ccff"
                     />
                 </div>
+                {allies.length > 0 && (
+                    <section className={styles.allies} aria-label="Aliadas">
+                        {allies.map((ally) => (
+                            <Bar
+                                key={ally.id}
+                                value={ally.hp}
+                                max={ally.max}
+                                color="#00ffc8"
+                                label={ally.name}
+                            />
+                        ))}
+                    </section>
+                )}
             </div>
             <div className={styles.hudVs}>
                 <span className={styles.hudVsText}>VS</span>
@@ -218,8 +234,9 @@ function App() {
         max: 100,
         ready: false,
     });
-    const [isDamaged, setIsDamaged] = useState(false);
 
+    const [isDamaged, setIsDamaged] = useState(false);
+    const [allies, setAllies] = useState([]);
     const [coopRoomId, setCoopRoomId] = useState(null);
     const [isCoopHost, setIsCoopHost] = useState(false);
 
@@ -236,6 +253,7 @@ function App() {
         setUltimateState({ energy: 0, max: 100, ready: false });
         setEnemyUltimate({ energy: 0, max: 100, ready: false });
         setIsDamaged(false);
+        setAllies([]);
         setCombatSessionId((prev) => prev + 1);
     };
 
@@ -266,7 +284,8 @@ function App() {
         resetCombatStats();
         setScreen("coopCombat");
 
-        const playerId = useCharacterStore.getState().character?.id?.toString() ?? "";
+        const playerId =
+            useCharacterStore.getState().character?.id?.toString() ?? "";
 
         if (phaserRef.current) {
             const game = phaserRef.current.game;
@@ -293,9 +312,10 @@ function App() {
             }, 3000);
         };
 
-        const handleCombatResult = async ({ winner }) => {
+        const handleCombatResult = async ({ winner, coop }) => {
             try {
-                await updateCombatStats(winner === "player");
+                // En coop el servidor ya guardó el resultado al cerrar la sala
+                if (!coop) await updateCombatStats(winner === "player");
                 const { fetchCharacter } = useCharacterStore.getState();
                 if (fetchCharacter) await fetchCharacter();
                 const topPlayers = await getRanking();
@@ -328,6 +348,11 @@ function App() {
             setPlayerCooldowns((p) => ({ ...p, ranged: ready }));
         const handleUltimate = (data) => setUltimateState(data);
         const handleEnemyUlt = (data) => setEnemyUltimate(data);
+        const handleAllies = (list) => {
+            console.log("APP recibe aliadas:", list);
+            setAllies(list);
+        };
+        EventBus.on("allies-health", handleAllies);
 
         EventBus.on("combat-load-error", handleLoadError);
         EventBus.on("combat-result", handleCombatResult);
@@ -340,7 +365,7 @@ function App() {
         EventBus.on("player-cooldown-ranged", handleCooldownRng);
         EventBus.on("player-ultimate", handleUltimate);
         EventBus.on("enemy-ultimate", handleEnemyUlt);
-
+        //EventBus.off("allies-health", handleAllies);
         getRanking().then(setRanking);
 
         return () => {
@@ -355,6 +380,7 @@ function App() {
             EventBus.off("player-cooldown-ranged", handleCooldownRng);
             EventBus.off("player-ultimate", handleUltimate);
             EventBus.off("enemy-ultimate", handleEnemyUlt);
+            EventBus.off("allies-health", handleAllies);
         };
     }, [combatSessionId]);
 
@@ -484,6 +510,7 @@ function App() {
                         enemyUltimate={enemyUltimate}
                         playerName={playerName}
                         enemyName={enemyName}
+                        allies={allies}
                     />
                 </div>
             )}
