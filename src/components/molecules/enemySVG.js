@@ -1,3 +1,12 @@
+export const ENEMY_TYPES = [
+    "HTML",
+    "CSS",
+    "JAVASCRIPT",
+    "REACT",
+    "JAVA",
+    "SPRINGBOOT",
+];
+
 export function generateEnemySVG(type) {
     const designs = {
         HTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
@@ -179,8 +188,7 @@ export function generateEnemySVG(type) {
 }
 
 export async function loadEnemyTextures(scene) {
-    const types = ["HTML", "CSS", "JAVASCRIPT", "REACT", "JAVA", "SPRINGBOOT"];
-
+    const types = ENEMY_TYPES;
     const promises = types.map((type) => {
         if (scene.textures.exists(type)) return Promise.resolve();
 

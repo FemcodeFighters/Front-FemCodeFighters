@@ -8,7 +8,11 @@ import Enemy from "../characters/Enemy";
 import { getCharacter, getUltimateConfig } from "../../service/playerApi";
 import { getPlayerById } from "../../service/playerApi";
 import { generateCharacterFrames } from "../../components/molecules/characterSVG";
-import { loadEnemyTextures } from "../../components/molecules/enemySVG";
+import {
+    loadEnemyTextures,
+    ENEMY_TYPES,
+} from "../../components/molecules/enemySVG";
+import { showNextStackAnnouncement } from "../characters/effects/NextStackAnnouncement";
 import {
     connectToRoom,
     sendInput,
@@ -48,6 +52,11 @@ export default class CoopCombatScene extends Scene {
         this._lastUltimateCount = undefined;
         this._alliesSnapshot = null;
         this._localDead = false;
+        this._enemyStage = 0;
+        this._enemyDying = false;
+        this._projectiles = new Map();
+        this._lastEnemyCharge = undefined;
+        this._lastEnemyUltCount = undefined;
     }
 
     async create() {
@@ -88,6 +97,7 @@ export default class CoopCombatScene extends Scene {
             this.localPlayer.on("healthChanged", () => this._updateUI());
             this.localPlayer.on("died", () => this._onLocalPlayerDied());
             this._spawnEnemy();
+            showNextStackAnnouncement(this, ENEMY_TYPES[0]);
         } catch (err) {
             console.error("Error cargando personaje:", err);
         }
@@ -143,7 +153,9 @@ export default class CoopCombatScene extends Scene {
                 this.remotePlayers.delete(pid);
             }
         });
-        if (state.enemy) this._applyEnemyState(state.enemy);
+        if (state.enemy) this._applyEnemyState(state.enemy, state.stage ?? 0);
+        this._syncProjectiles(state.projectiles ?? []);
+        this._syncEnemyUltimate(state);
         this._emitAlliesHealth(state);
         if (state.phase === "WIN") this._onCombatEnd("player");
         if (state.phase === "LOSE") this._onCombatEnd("enemy");
@@ -268,17 +280,14 @@ export default class CoopCombatScene extends Scene {
         g.destroy();
     }
 
-    _applyEnemyState(enemyState) {
-        console.log(
-            "Server enemy state:",
-            enemyState.health,
-            "Local enemy.hp:",
-            this.enemy?.hp,
-        );
-        if (!this.enemy || !this.enemy.active) {
-            if (enemyState.alive) this._spawnEnemy();
-            return;
+    _applyEnemyState(enemyState, stage = 0) {
+        if (stage !== this._enemyStage) {
+            this._enemyStage = stage;
+            this._enemyDying = false;
+            this._spawnEnemy(ENEMY_TYPES[stage]);
         }
+        if (!this.enemy || !this.enemy.active) return;
+
         if (
             enemyState.maxHealth !== undefined &&
             this.enemy.maxHP !== enemyState.maxHealth
@@ -296,9 +305,132 @@ export default class CoopCombatScene extends Scene {
             this.enemy.hp = enemyState.health;
             this._updateUI();
         }
-        if (!enemyState.alive && this.enemy.active) {
+        if (!enemyState.alive && !this._enemyDying) {
+            this._enemyDying = true;
             this.enemy.die();
+            this._onEnemyDefeated(stage);
         }
+    }
+
+    // Las bolas del enemigo las simula el servidor: aquí solo se dibujan
+    _syncProjectiles(list) {
+        const present = new Set();
+        list.forEach((shot) => {
+            present.add(shot.id);
+            const y = this._toClientY(shot.y) - 55;
+            let sprite = this._projectiles.get(shot.id);
+            if (!sprite) {
+                sprite = this.add
+                    .sprite(shot.x, y, "projectile-bug")
+                    .setDisplaySize(32, 32)
+                    .setDepth(10);
+                this._projectiles.set(shot.id, sprite);
+            }
+            sprite.targetX = shot.x;
+            sprite.targetY = y;
+        });
+        this._projectiles.forEach((sprite, id) => {
+            if (!present.has(id)) {
+                sprite.destroy();
+                this._projectiles.delete(id);
+            }
+        });
+    }
+
+    _updateProjectiles() {
+        this._projectiles.forEach((sprite) => {
+            sprite.x = Phaser.Math.Linear(sprite.x, sprite.targetX, 0.5);
+            sprite.y = Phaser.Math.Linear(sprite.y, sprite.targetY, 0.5);
+            sprite.angle += 8;
+        });
+    }
+
+    _syncEnemyUltimate(state) {
+        // Barra de ultimate del enemigo en el HUD (solo cuando cambia)
+        const charge = state.enemyCharge ?? 0;
+        if (charge !== this._lastEnemyCharge) {
+            this._lastEnemyCharge = charge;
+            EventBus.emit("enemy-ultimate", {
+                energy: charge,
+                max: 100,
+                ready: charge >= 100,
+            });
+        }
+        // El contador sube cuando el enemigo empieza a cargar su ultimate
+        const count = state.enemyUltCount ?? 0;
+        if (
+            this._lastEnemyUltCount !== undefined &&
+            count > this._lastEnemyUltCount
+        ) {
+            this._playEnemyUltimate();
+        }
+        this._lastEnemyUltCount = count;
+    }
+
+    _playEnemyUltimate() {
+        const enemy = this.enemy;
+        if (!enemy?.active) return;
+        const config =
+            enemy.ultimateConfigs?.[enemy.enemyType] ??
+            enemy.ultimateConfigs?.JAVASCRIPT;
+        if (!config) return;
+        const cx = enemy.x;
+        const cy = enemy.y - 50;
+        const radius = 250; // el mismo radio que ENEMY_ULT_RADIUS del servidor
+
+        this.cameras.main.shake(500, 0.02);
+        this._floatText(enemy, `¡${config.text}!`, "#ff4444", 0, -40);
+
+        // Aviso del área que va a explotar
+        const ring = this.add
+            .circle(cx, cy, radius, config.tint[0], 0.12)
+            .setStrokeStyle(3, config.tint[0], 0.9)
+            .setDepth(15);
+        this.tweens.add({
+            targets: ring,
+            alpha: { from: 0.3, to: 1 },
+            duration: 150,
+            yoyo: true,
+            repeat: 1,
+        });
+
+        this.time.delayedCall(600, () => {
+            ring.destroy();
+            if (!enemy.active || this._enemyDying) return;
+            this.cameras.main.flash(300, 255, 0, 0, false);
+            this.cameras.main.shake(300, 0.02);
+            const burst = this.add
+                .particles(cx, cy, enemy.texture.key, {
+                    speed: { min: 300, max: 700 },
+                    angle: { min: 0, max: 360 },
+                    scale: { start: 0.8, end: 0.1 },
+                    alpha: { start: 1, end: 0 },
+                    gravityY: 400,
+                    lifespan: 1200,
+                    tint: config.tint,
+                    blendMode: "ADD",
+                    emitting: false,
+                })
+                .setDepth(16);
+            burst.explode(30);
+            this.time.delayedCall(1300, () => burst.destroy());
+        });
+    }
+
+    _onEnemyDefeated(stage) {
+        if (stage >= ENEMY_TYPES.length - 1) return;
+        if (this.localPlayer?.active) {
+            this._floatText(
+                this.localPlayer,
+                "¡REFACTORIZED!",
+                "#00ff41",
+                0,
+                -40,
+            );
+        }
+        this.time.delayedCall(1000, () =>
+            showNextStackAnnouncement(this, ENEMY_TYPES[stage + 1]),
+        );
     }
 
     update(_time, delta) {
@@ -308,6 +440,7 @@ export default class CoopCombatScene extends Scene {
             if (rp && typeof rp.update === "function" && rp.active)
                 rp.update(delta);
         });
+        this._updateProjectiles();
         this._captureAndSendInput();
     }
 
@@ -488,14 +621,14 @@ export default class CoopCombatScene extends Scene {
         });
     }
 
-    _spawnEnemy() {
-        const { width, height } = this.scale;
-        if (this.enemy) {
+    _spawnEnemy(type = ENEMY_TYPES[0]) {
+        const { width } = this.scale;
+        if (this.enemy && this.enemy.active) {
             this.enemy.removeAllListeners();
             this.enemy.destroy();
         }
         const spawnY = this._toClientY(300);
-        this.enemy = new Enemy(this, width - 200, spawnY, "JAVASCRIPT");
+        this.enemy = new Enemy(this, width - 200, spawnY, type);
         this.physics.add.collider(this.enemy, this.platforms);
         if (this.enemy.body) {
             this.enemy.body.setGravityY(1000);
@@ -532,6 +665,8 @@ export default class CoopCombatScene extends Scene {
     }
 
     _cleanup() {
+        EventBus.emit("enemy-ultimate", { energy: 0, max: 100, ready: false });
+        this._projectiles.clear();
         EventBus.emit("allies-health", []);
         disconnectFromRoom();
         if (this.stompClient) {
