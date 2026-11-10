@@ -19,6 +19,7 @@ import {
     disconnectFromRoom,
 } from "../../service/coopSocket";
 import { CharacterState } from "../characters/Character";
+import { playVictoryEffect } from "../characters/effects/VictoryEffect";
 
 export default class CoopCombatScene extends Scene {
     constructor() {
@@ -57,6 +58,7 @@ export default class CoopCombatScene extends Scene {
         this._projectiles = new Map();
         this._lastEnemyCharge = undefined;
         this._lastEnemyUltCount = undefined;
+        this._victoryPlaying = false;
     }
 
     async create() {
@@ -157,7 +159,7 @@ export default class CoopCombatScene extends Scene {
         this._syncProjectiles(state.projectiles ?? []);
         this._syncEnemyUltimate(state);
         this._emitAlliesHealth(state);
-        if (state.phase === "WIN") this._onCombatEnd("player");
+        if (state.phase === "WIN") this._playVictory();
         if (state.phase === "LOSE") this._onCombatEnd("enemy");
     }
 
@@ -451,7 +453,8 @@ export default class CoopCombatScene extends Scene {
     }
 
     _captureAndSendInput() {
-        if (!this.localPlayer || this._localDead) return;
+        if (!this.localPlayer || this._localDead || this._victoryPlaying)
+            return;
         const p = this.localPlayer;
         const { cursors, keys } = p;
 
@@ -662,6 +665,13 @@ export default class CoopCombatScene extends Scene {
         this.combatFinished = true;
         this.physics.pause();
         EventBus.emit("combat-result", { winner, coop: true });
+    }
+
+    _playVictory() {
+        if (this.combatFinished || this._victoryPlaying) return;
+        this._victoryPlaying = true;
+        // Tras la celebración se pasa al ranking, igual que antes
+        playVictoryEffect(this, () => this._onCombatEnd("player"));
     }
 
     _cleanup() {
