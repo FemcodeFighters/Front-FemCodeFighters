@@ -61,6 +61,12 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
             </g>
         </svg>`;
 
+        // Vista del editor: el personaje entero en su propio lienzo de 80x160
+    const previewWrap = (content) => `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 160">
+            <ellipse cx="40" cy="156" rx="22" ry="4" fill="${hairColor}" opacity="0.2"/>
+            ${content}
+        </svg>`;
     const torsoHoodie = (oy = 0) => `
         <path d="M28 ${58 + oy} Q22 ${54 + oy} 18 ${62 + oy} Q16 ${76 + oy} 20 ${84 + oy} Q24 ${80 + oy} 26 ${70 + oy} Q28 ${64 + oy} 32 ${62 + oy} Z" fill="${ol2}" opacity="0.9"/>
         <path d="M52 ${58 + oy} Q58 ${54 + oy} 62 ${62 + oy} Q64 ${76 + oy} 60 ${84 + oy} Q56 ${80 + oy} 54 ${70 + oy} Q52 ${64 + oy} 48 ${62 + oy} Z" fill="${ol2}" opacity="0.9"/>
@@ -280,6 +286,11 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
     };
 
     const anims = {
+                preview: [
+            previewWrap(
+                legsIdle + torso(0) + armL(10) + armR(-10) + headBase(0),
+            ),
+        ],
         idle: [
             wrap(legsIdle + torso(0) + armL(10) + armR(-10) + headBase(0)),
             wrap(legsIdle + torso(-1) + armL(5) + armR(-5) + headBase(-1)),
@@ -384,5 +395,6 @@ export function generateCharacterFrames(character = {}, anim = "idle") {
         ],
     };
 
+       
     return anims[anim] || anims.idle;
 }

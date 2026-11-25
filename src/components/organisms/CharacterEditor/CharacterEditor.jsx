@@ -6,30 +6,9 @@ import OptionButton from "../../atoms/OptionButton";
 import useCharacterStore from "../../../store/useCharacterStore";
 import SaveToast from "../../atoms/SaveToast/SaveToast";
 import BackButton from "../../atoms/BackButton/BackButton";
+import { ULTIMATE_INFO, DEFAULT_ULTIMATE } from "../../../constants/UltimateSkills";
 
-const ULTIMATE_INFO = {
-    FRIDAY_DEPLOY: {
-        name: "FRIDAY DEPLOY",
-        description:
-            "Despliegue arriesgado en viernes. Te vuelve invulnerable temporalmente y regeneras 30 HP de código base. Puede fallar y retrasar el proyecto.",
-        stats: "HEAL: +30 o -30 | INVULNERABLE: 0.5s",
-        color: "#00ffc8",
-    },
-    SPAGHETTI_CODE: {
-        name: "SPAGHETTI CODE",
-        description:
-            "Lanzas una maraña de código sin documentar que enreda a los enemigos, causando daño por cada tick. Si el proyecto es grupal daña a tus compañeras",
-        stats: "DAMAGE: 5/tick | -1 para aliadas | DURATION: 5s",
-        color: "#f59e0b",
-    },
-    GIT_CLONE: {
-        name: "GIT CLONE",
-        description:
-            "Creas una instancia duplicada que embiste a toda velocidad infligiendo 30 de daño masivo. Si fallas el comando puede dañar a una aliada",
-        stats: "DAMAGE: 30 | CLONE_LIFE: 6s",
-        color: "#3b82f6",
-    },
-};
+
 
 const SKIN_COLORS = ["#f5c5a3", "#e8a882", "#c68642", "#8d5524", "#4a2912"];
 const HAIR_COLORS = [
@@ -154,9 +133,7 @@ export default function CharacterEditor({
 
     const skillKey = character?.ultimateSkill;
 
-    const currentSkill = ULTIMATE_INFO[skillKey] || ULTIMATE_INFO.FRIDAY_DEPLOY;
-
-    console.log("Renderizando con habilidad:", currentSkill.name);
+const currentSkill = ULTIMATE_INFO[skillKey] || ULTIMATE_INFO[DEFAULT_ULTIMATE];
     return (
         <div className={styles.root}>
             <div className={styles.grid} />
