@@ -5,6 +5,13 @@ import Enemy from "../characters/Enemy";
 import { getCharacter, getUltimateConfig } from "../../service/playerApi";
 import { generateCharacterFrames } from "../../components/molecules/characterSVG";
 import { loadEnemyTextures } from "../../components/molecules/enemySVG";
+import {
+    createArenaTextures,
+    createArenaBackground,
+    createArenaPlatforms,
+} from "../utils/Arena";
+import { showNextStackAnnouncement } from "../characters/effects/NextStackAnnouncement";
+import { playVictoryEffect } from "../characters/effects/VictoryEffect";
 
 export default class CombatScene extends Scene {
     constructor() {
@@ -43,9 +50,9 @@ export default class CombatScene extends Scene {
             this.input.keyboard.enabled = true;
         }
         this.cameras.main.setBackgroundColor("#020408").fadeIn(500);
-        this._createSceneTextures();
-        this._createBackground(width, height);
-        this.platforms = this._createPlatforms(width, height);
+        createArenaTextures(this);
+createArenaBackground(this, width, height);
+this.platforms = createArenaPlatforms(this, width, height);
         this._createMatrixRain(width, height);
         this._createSpaghettiRain();
         await loadEnemyTextures(this);
@@ -167,8 +174,7 @@ export default class CombatScene extends Scene {
             this.enemy = null;
         }
 
-        this.showNextStackAnnouncement(type);
-
+showNextStackAnnouncement(this, type);
         const groundY = height - 150;
         this.enemy = new Enemy(this, width - 200, groundY, type);
         this.physics.add.collider(this.enemy, this.platforms);
@@ -338,7 +344,7 @@ export default class CombatScene extends Scene {
         EventBus.off("enemy-ultimate-executed");
     }
 
-    _createMockupTextures() {
+    /*_createMockupTextures() {
         if (!this.textures.exists("spaghetti")) {
             const graphics = this.make.graphics({ x: 0, y: 0, add: false });
             graphics.lineStyle(2, 0xf7df1e, 1);
@@ -352,7 +358,7 @@ export default class CombatScene extends Scene {
             graphics.fillRect(0, 0, 8, 8);
             graphics.generateTexture("confetti", 8, 8);
         }
-    }
+    }*/
 
     _createSpaghettiRain() {
         this.spaghettiRain = this.add
@@ -388,45 +394,10 @@ export default class CombatScene extends Scene {
     }
 
     _finalBossEffect() {
-        const { width, height } = this.scale;
-        this.showCombatText(
-            width / 2,
-            height / 2,
-            "¡FULL STACK MASTERED!",
-            "#00ff41",
-            true,
-        );
-        const leftConfetti = this.add.particles(0, height, "confetti", {
-            angle: { min: -60, max: -20 },
-            speed: { min: 400, max: 800 },
-            gravityY: 400,
-            lifespan: 3000,
-            tint: [0x00ff41, 0x00ccff, 0xf59e0b, 0xff0055],
-            scale: { start: 1, end: 0 },
-            quantity: 5,
-            rotate: { min: 0, max: 360 },
-        });
+    playVictoryEffect(this, () => this._onCombatEnd("player"));
+}
 
-        const rightConfetti = this.add.particles(width, height, "confetti", {
-            angle: { min: 200, max: 240 },
-            speed: { min: 400, max: 800 },
-            gravityY: 400,
-            lifespan: 3000,
-            tint: [0x00ff41, 0x00ccff, 0xf59e0b, 0xff0055],
-            scale: { start: 1, end: 0 },
-            quantity: 5,
-            rotate: { min: 0, max: 360 },
-        });
-        this.cameras.main.flash(500, 255, 255, 255);
-        this.cameras.main.shake(1000, 0.01);
-        this.time.delayedCall(4000, () => {
-            leftConfetti.stop();
-            rightConfetti.stop();
-            this._onCombatEnd("player");
-        });
-    }
-
-    showNextStackAnnouncement(type) {
+   /* showNextStackAnnouncement(type) {
         const { width, height } = this.scale;
         const overlay = this.add
             .rectangle(width / 2, height / 2, width, height, 0x000000, 0.6)
@@ -510,9 +481,9 @@ export default class CombatScene extends Scene {
                 },
             });
         });
-    }
+    }*/
 
-    _createSceneTextures() {
+   /* _createSceneTextures() {
         if (!this.textures.exists("grid_tile")) {
             const g = this.make.graphics({ x: 0, y: 0, add: false });
             g.fillStyle(0x000000, 0);
@@ -831,7 +802,7 @@ export default class CombatScene extends Scene {
             .setOrigin(0.5, 1)
             .setDepth(3)
             .setAlpha(0.25);
-    }
+    }*/
     _createMatrixRain(width, height) {
         const COLS = 28;
         const CHAR_H = 18;

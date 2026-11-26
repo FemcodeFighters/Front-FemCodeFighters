@@ -20,6 +20,12 @@ import {
 } from "../../service/coopSocket";
 import { CharacterState } from "../characters/Character";
 import { playVictoryEffect } from "../characters/effects/VictoryEffect";
+import {
+    createArenaTextures,
+    createArenaBackground,
+    createArenaPlatforms,
+    ARENA_FLOOR_OFFSET,
+} from "../utils/Arena";
 
 export default class CoopCombatScene extends Scene {
     constructor() {
@@ -64,9 +70,9 @@ export default class CoopCombatScene extends Scene {
     async create() {
         const { width, height } = this.scale;
         this.cameras.main.setBackgroundColor("#020408").fadeIn(500);
-        this._createSceneTextures();
-        this._createBackground(width, height);
-        this.platforms = this._createPlatforms(width, height);
+        createArenaTextures(this);
+        createArenaBackground(this, width, height);
+        this.platforms = createArenaPlatforms(this, width, height);
         await loadEnemyTextures(this);
         await this._initLocalPlayer(width, height);
         this._connectWebSocket();
@@ -511,36 +517,6 @@ export default class CoopCombatScene extends Scene {
         };
         effects[skill]?.call(caster);
     }
-    /*
-    _showHealEffect(sprite) {
-        const amount = this.registry.get("ultimateConfig")?.healAmount || 30;
-        this.time.delayedCall(600, () => {
-            if (!sprite.active) return;
-            const text = this.add
-                .text(sprite.x, sprite.y - 80, `+${amount} HP`, {
-                    fontFamily: "Orbitron",
-                    fontSize: "24px",
-                    fill: "#00ff41",
-                    stroke: "#000000",
-                    strokeThickness: 5,
-                })
-                .setOrigin(0.5)
-                .setDepth(3000);
-            this.tweens.add({
-                targets: text,
-                y: text.y - 60,
-                alpha: 0,
-                duration: 1200,
-                ease: "Power2.out",
-                onComplete: () => text.destroy(),
-            });
-            sprite.setTint(0x00ff41);
-            this.time.delayedCall(
-                500,
-                () => sprite.active && sprite.clearTint(),
-            );
-        });
-    }*/
 
     getUltimateOutcome(caster) {
         const id =
@@ -720,130 +696,13 @@ export default class CoopCombatScene extends Scene {
         });
     }
 
-    _createSceneTextures() {
-        if (!this.textures.exists("platform_tile")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0x0a0a1a, 1);
-            g.fillRect(0, 0, 8, 16);
-            g.fillStyle(0x00ffc8, 0.9);
-            g.fillRect(0, 0, 8, 2);
-            g.generateTexture("platform_tile", 8, 16);
-            g.destroy();
-        }
-        if (!this.textures.exists("spaghetti")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.lineStyle(2, 0xf7df1e, 1);
-            g.strokeLineShape(new Phaser.Geom.Line(0, 0, 0, 20));
-            g.generateTexture("spaghetti", 2, 20);
-            g.destroy();
-        }
-        if (!this.textures.exists("confetti")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0xffffff, 1);
-            g.fillRect(0, 0, 8, 8);
-            g.generateTexture("confetti", 8, 8);
-            g.destroy();
-        }
-        if (!this.textures.exists("spaghetti_code")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0xf7df1e, 1);
-            g.fillRect(0, 0, 3, 24);
-            g.generateTexture("spaghetti_code", 3, 24);
-            g.destroy();
-        }
-        if (!this.textures.exists("projectile-duck")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0xf7df1e, 1);
-            g.fillEllipse(16, 20, 24, 18);
-            g.fillEllipse(22, 12, 16, 14);
-            g.fillStyle(0xff8c00, 1);
-            g.fillTriangle(28, 10, 34, 10, 34, 14);
-            g.generateTexture("projectile-duck", 36, 32);
-            g.destroy();
-        }
-        if (!this.textures.exists("projectile-bug")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0x22c55e, 1);
-            g.fillEllipse(16, 18, 16, 20);
-            g.generateTexture("projectile-bug", 32, 32);
-            g.destroy();
-        }
-        if (!this.textures.exists("player_fallback")) {
-            const g = this.make.graphics({ x: 0, y: 0, add: false });
-            g.fillStyle(0xff00ff, 1);
-            g.fillRect(0, 0, 32, 32);
-            g.generateTexture("player_fallback", 32, 32);
-            g.destroy();
-        }
-    }
-
-    _createBackground(width, height) {
-        this.add
-            .rectangle(width / 2, height / 2, width, height, 0x020408)
-            .setDepth(-10);
-        const gridGfx = this.add.graphics().setDepth(-8);
-        const groundY = height - 60;
-        const horizon = height * 0.55;
-        for (let i = 0; i <= 8; i++) {
-            const t = i / 8;
-            const y = horizon + (groundY - horizon) * t;
-            gridGfx.lineStyle(1, 0x00ffc8, 0.05 + t * 0.2);
-            gridGfx.beginPath();
-            gridGfx.moveTo(0, y);
-            gridGfx.lineTo(width, y);
-            gridGfx.strokePath();
-        }
-        const scanGfx = this.add.graphics().setDepth(100).setAlpha(0.04);
-        for (let y = 0; y < height; y += 4) {
-            scanGfx.fillStyle(0x000000, 1);
-            scanGfx.fillRect(0, y + 2, width, 2);
-        }
-    }
-
-    _createPlatforms(width, height) {
-        const platforms = this.physics.add.staticGroup();
-        const groundY = height - 30;
-        const floorBody = this.add.rectangle(
-            width / 2,
-            groundY + 35,
-            width,
-            60,
-            0x000000,
-            0,
-        );
-        this.physics.add.existing(floorBody, true);
-        platforms.add(floorBody);
-        const floorGfx = this.add.graphics().setDepth(1);
-        floorGfx.fillStyle(0x020408, 1);
-        floorGfx.fillRect(0, groundY, width, 60);
-        floorGfx.lineStyle(2, 0x00ffc8, 1);
-        floorGfx.beginPath();
-        floorGfx.moveTo(0, groundY);
-        floorGfx.lineTo(width, groundY);
-        floorGfx.strokePath();
-        this._addPlatform(platforms, 160, height - 260, 180);
-        this._addPlatform(platforms, width / 2, height - 370, 200);
-        this._addPlatform(platforms, width - 180, height - 290, 180);
-        return platforms;
-    }
-
-    _addPlatform(platforms, cx, cy, w) {
-        const h = 28;
-        const body = this.add.rectangle(cx, cy, w, h, 0x0a0d14);
-        this.physics.add.existing(body, true);
-        platforms.add(body);
-        const gfx = this.add.graphics().setDepth(2);
-        gfx.lineStyle(1.5, 0x00ffc8, 0.9);
-        gfx.strokeRect(cx - w / 2, cy - h / 2, w, h);
-    }
-
     _toClientY(serverY) {
-        const floorY = this.scale.height - 30;
+        const floorY = this.scale.height - ARENA_FLOOR_OFFSET;
         return (serverY / 1000) * floorY;
     }
 
     _toServerY(clientY) {
-        const floorY = this.scale.height - 30;
+        const floorY = this.scale.height - ARENA_FLOOR_OFFSET;
         return (clientY / floorY) * 1000;
     }
 
