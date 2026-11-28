@@ -26,6 +26,7 @@ import {
     createArenaPlatforms,
     ARENA_FLOOR_OFFSET,
 } from "../utils/Arena";
+import { addSvgTexture } from "../utils/svgTexture";
 
 export default class CoopCombatScene extends Scene {
     constructor() {
@@ -669,32 +670,13 @@ export default class CoopCombatScene extends Scene {
     }
 
     async _ensurePlayerTexture(serverData, textureKey) {
-        if (!serverData || !textureKey) return;
-        if (this.textures.exists(textureKey)) return;
-        return new Promise((resolve) => {
-            const frames = generateCharacterFrames(serverData, "idle");
-            const svgString = frames[0];
-            const img = new Image();
-            const blob = new Blob([svgString], {
-                type: "image/svg+xml;charset=utf-8",
-            });
-            const url = URL.createObjectURL(blob);
-            img.onload = () => {
-                this.textures.addImage(textureKey, img);
-                URL.revokeObjectURL(url);
-                resolve();
-            };
-            img.onerror = () => {
-                console.error(
-                    "Error cargando el SVG para la textura:",
-                    textureKey,
-                );
-                URL.revokeObjectURL(url);
-                resolve();
-            };
-            img.src = url;
-        });
-    }
+    if (!serverData || !textureKey) return;
+    await addSvgTexture(
+        this,
+        textureKey,
+        generateCharacterFrames(serverData, "idle")[0],
+    );
+}
 
     _toClientY(serverY) {
         const floorY = this.scale.height - ARENA_FLOOR_OFFSET;

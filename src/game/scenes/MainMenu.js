@@ -2,6 +2,7 @@ import { EventBus } from "../EventBus";
 import { Scene } from "phaser";
 import useCharacterStore from "../../store/useCharacterStore";
 import { generateCharacterFrames } from "../../components/molecules/characterSVG";
+import { addSvgTexture } from "../utils/svgTexture";
 
 export class MainMenu extends Scene {
     constructor() {
@@ -74,40 +75,28 @@ export class MainMenu extends Scene {
         EventBus.emit("current-scene-ready", this);
     }
 
-    async updatePlayerAnimation(characterData) {
-        this.updateCounter++;
-        const currentBatchId = this.updateCounter;
-        const framesSVG = generateCharacterFrames(characterData, "idle");
-        const frameKeys = [];
-        const promises = framesSVG.map((svgString, index) => {
-            return new Promise((resolve) => {
-                const img = new Image();
-                const cleanSvg = svgString.replace(/="0"/g, '="#000000"');
-                const svgBlob = new Blob([cleanSvg], {
-                    type: "image/svg+xml;charset=utf-8",
-                });
-                const url = URL.createObjectURL(svgBlob);
-                const key = `p_${currentBatchId}_${index}`;
-                frameKeys.push(key);
-                img.onload = () => {
-                    if (this.textures) this.textures.addImage(key, img);
-                    URL.revokeObjectURL(url);
-                    resolve();
-                };
-                img.src = url;
-            });
-        });
-        await Promise.all(promises);
-        if (currentBatchId !== this.updateCounter) return;
-        const animKey = `idle_${currentBatchId}`;
-        this.anims.create({
-            key: animKey,
-            frames: frameKeys.map((key) => ({ key })),
-            frameRate: 6,
-            repeat: -1,
-        });
-        this.player.play(animKey);
-    }
+   async updatePlayerAnimation(characterData) {
+    this.updateCounter++;
+    const currentBatchId = this.updateCounter;
+    const framesSVG = generateCharacterFrames(characterData, "idle");
+    const frameKeys = framesSVG.map(
+        (_, index) => `p_${currentBatchId}_${index}`,
+    );
+    await Promise.all(
+        framesSVG.map((svg, index) =>
+            addSvgTexture(this, frameKeys[index], svg),
+        ),
+    );
+    if (currentBatchId !== this.updateCounter) return;
+    const animKey = `idle_${currentBatchId}`;
+    this.anims.create({
+        key: animKey,
+        frames: frameKeys.map((key) => ({ key })),
+        frameRate: 6,
+        repeat: -1,
+    });
+    this.player.play(animKey);
+}
 
     changeScene() {
         if (this.isChangingScene) return;

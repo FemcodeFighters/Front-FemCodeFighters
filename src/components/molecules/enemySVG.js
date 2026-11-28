@@ -1,3 +1,5 @@
+import { addSvgTexture } from "../../game/utils/svgTexture";
+
 export const ENEMY_TYPES = [
     "HTML",
     "CSS",
@@ -187,7 +189,7 @@ export function generateEnemySVG(type) {
     return designs[type] || designs["JAVASCRIPT"];
 }
 
-export async function loadEnemyTextures(scene) {
+/*export async function loadEnemyTextures(scene) {
     const types = ENEMY_TYPES;
     const promises = types.map((type) => {
         if (scene.textures.exists(type)) return Promise.resolve();
@@ -208,4 +210,11 @@ export async function loadEnemyTextures(scene) {
 
     scene.load.start();
     await Promise.all(promises);
+}*/
+export async function loadEnemyTextures(scene) {
+    await Promise.all(
+        ENEMY_TYPES.map((type) =>
+            addSvgTexture(scene, type, generateEnemySVG(type)),
+        ),
+    );
 }
